@@ -11,19 +11,25 @@ const config: Phaser.Types.Core.GameConfig = {
     type: AUTO,
     width: 1600,
     height: 768,
-    parent: 'game-container',
+    parent: "game-container",
     // backgroundColor: '#028af8',
     scene: [
         Boot,
         Preloader,
         // MainMenu,
         MainGame,
-        GameOver
+        GameOver,
     ],
     physics: {
-        default: 'arcade'
-    }
-};
+        default: "arcade",
+    },
+    input: {
+        // activePointers: 3,
+        touch: {
+            capture: false, // Disable touch event capture
+        },
+    },
+}
 
 const StartGame = (parent: string) => {
 

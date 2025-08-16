@@ -68,12 +68,7 @@ function App() {
     return (
         <div id="app">
             <PhaserGame ref={phaserRef} currentActiveScene={currentScene} />
-            {phaserRef.current?.game && phaserRef.current.scene && (
-                <Ui
-                    game={phaserRef.current.game}
-                    scene={phaserRef.current.scene}
-                />
-            )}
+            <Ui game={phaserRef.current?.game} scene={phaserRef.current?.scene} />
             {/* <div>
                 <div>
                     <button className="button" onClick={changeScene}>Change Scene</button>
@@ -89,7 +84,7 @@ function App() {
                 </div>
             </div> */}
         </div>
-    );
+    )
 }
 
 export default App;
