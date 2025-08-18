@@ -52,5 +52,14 @@ export class Preloader extends Scene {
     loadParticles() {
         this.load.image("blood", "particles/blood.png")
         this.load.image("arrow", "particles/arrow.webp")
+
+        this.textures.exists("parry") ||
+            (() => {
+                const g = this.add.graphics()
+                g.fillStyle(0xffff00, 1)
+                g.fillRect(0, 0, 16, 3)
+                g.generateTexture("parry", 16, 3)
+                g.destroy()
+            })()
     }
 }

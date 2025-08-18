@@ -146,6 +146,25 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
+    spawnParryngEffect() {
+        const particles = this.scene.add.particles(this.x, this.y, "parry", {
+            lifespan: 600,
+            speed: { min: 30, max: 80 },
+            scale: { start: 0.15, end: 0 },
+            quantity: 5,
+            blendMode: "NORMAL",
+            frequency: -1,
+        })
+
+        // Explode particles immediately
+        particles.explode(10)
+
+        // Auto-destroy after particles complete
+        this.scene.time.delayedCall(600, () => {
+            particles.destroy()
+        })
+    }
+
     handleMouseEvents() {
         this.setInteractive({ useHandCursor: true, draggable: true })
         this.scene.input.setDraggable(this)
@@ -384,10 +403,16 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     takeDamage(damage: number) {
         const incomingDamage = damage - this.armor
         const resistanceMultiplier = 1 - this.resistance / 100
-        this.health -= incomingDamage * resistanceMultiplier
+        const finalDamage = Math.max(0, incomingDamage * resistanceMultiplier)
+        this.health -= finalDamage
         this.healthBar.setValue(this.health, this.maxHealth)
         if (this.health <= 0) {
             this.die()
+            return
+        }
+
+        if (finalDamage === 0) {
+            this.spawnParryngEffect()
         }
     }
 
