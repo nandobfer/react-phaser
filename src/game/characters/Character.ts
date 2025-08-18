@@ -278,48 +278,57 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     }
 
     avoidOtherCharacters() {
-        // Get all characters to avoid (all except self)
-        const allCharacters = [...this.scene.teamA.getChildren(), ...this.scene.teamB.getChildren()].filter((c) => c !== this) as Character[]
+        if (!this.target) return
 
-        const avoidanceVector = new Phaser.Math.Vector2()
+        // Calculate desired movement toward target
+        const angleToTarget = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y)
+        const desiredVelocity = new Phaser.Math.Vector2(Math.cos(angleToTarget) * this.speed, Math.sin(angleToTarget) * this.speed)
+
+        // Check for immediate obstacles in front
+        const frontCheckDistance = 30
+        const frontCheckPoint = new Phaser.Math.Vector2(
+            this.x + Math.cos(angleToTarget) * frontCheckDistance,
+            this.y + Math.sin(angleToTarget) * frontCheckDistance
+        )
+
+        // Find closest character in front
+        const allCharacters = [...this.scene.teamA.getChildren(), ...this.scene.teamB.getChildren()].filter(
+            (c) => c !== this && c.active
+        ) as Character[]
+
+        let closestInFront: Character | null = null
+        let minDistance = Number.MAX_VALUE
 
         for (const other of allCharacters) {
-            const distance = Phaser.Math.Distance.Between(this.x, this.y, other.x, other.y)
+            const distance = Phaser.Math.Distance.Between(frontCheckPoint.x, frontCheckPoint.y, other.x, other.y)
 
-            // If too close to any character (including non-targets)
-            if (distance < this.avoidanceRange) {
-                // Calculate push-away vector
-                const angle = Phaser.Math.Angle.Between(
-                    other.x,
-                    other.y, // From other to this (pushes away)
-                    this.x,
-                    this.y
-                )
-
-                const force = (this.avoidanceRange - distance) / this.avoidanceRange
-                avoidanceVector.x += Math.cos(angle) * force * this.speed
-                avoidanceVector.y += Math.sin(angle) * force * this.speed
-
-                this.currentCollisions.push(other)
+            if (distance < other.body.width / 2 + 10 && distance < minDistance) {
+                closestInFront = other
+                minDistance = distance
             }
         }
 
-        // Combine avoidance with target movement
-        if (this.target && avoidanceVector.length() > 0) {
-            const targetAngle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y)
+        // If obstacle in front, adjust path
+        if (closestInFront) {
+            // Calculate angle to go around the obstacle (left or right)
+            const angleToObstacle = Phaser.Math.Angle.Between(this.x, this.y, closestInFront.x, closestInFront.y)
 
-            // Original movement vector
-            const targetVector = new Phaser.Math.Vector2(Math.cos(targetAngle) * this.speed, Math.sin(targetAngle) * this.speed)
+            // Choose shortest path around (left or right)
+            const goLeft =
+                Phaser.Math.Angle.ShortestBetween(angleToTarget, angleToObstacle - Math.PI / 2) <
+                Phaser.Math.Angle.ShortestBetween(angleToTarget, angleToObstacle + Math.PI / 2)
 
-            // Blend vectors (weighted average)
-            const combinedVector = new Phaser.Math.Vector2()
-                .add(targetVector.multiply(new Phaser.Math.Vector2(0.7))) // 70% toward target
-                .add(avoidanceVector.multiply(new Phaser.Math.Vector2(0.3))) // 30% avoidance
+            const avoidAngle = angleToObstacle + (goLeft ? -Math.PI / 2 : Math.PI / 2)
 
-            this.setVelocity(combinedVector.x, combinedVector.y)
-            this.updateFacingDirection()
-            this.play(`${this.name}-walking-${this.facing}`, true)
+            // Blend desired velocity with avoidance
+            desiredVelocity.x = Math.cos(avoidAngle) * this.speed * 0.7 + desiredVelocity.x * 0.3
+            desiredVelocity.y = Math.sin(avoidAngle) * this.speed * 0.7 + desiredVelocity.y * 0.3
         }
+
+        // Apply final velocity
+        this.setVelocity(desiredVelocity.x, desiredVelocity.y)
+        this.updateFacingDirection()
+        this.play(`${this.name}-walking-${this.facing}`, true)
     }
 
     handleAttack() {
