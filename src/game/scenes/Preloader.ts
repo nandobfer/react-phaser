@@ -51,5 +51,6 @@ export class Preloader extends Scene {
 
     loadParticles() {
         this.load.image("blood", "particles/blood.png")
+        this.load.image("arrow", "particles/arrow.webp")
     }
 }

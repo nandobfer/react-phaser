@@ -226,7 +226,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.play(`${this.name}-walking-${this.facing}`, true)
     }
 
-    private updateFacingDirection() {
+    updateFacingDirection() {
         if (!this.target) {
             this.facing = "down"
             return
