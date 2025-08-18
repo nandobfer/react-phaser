@@ -338,6 +338,9 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.once("animationcomplete", () => {
             this.isAttacking = false
         })
+        this.once("animationstop", () => {
+            this.isAttacking = false
+        })
     }
 
     hasTargetUpdate() {
