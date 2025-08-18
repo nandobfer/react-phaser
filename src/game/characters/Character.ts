@@ -27,7 +27,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     attackSpeed = 1
 
     health = 0
-    maxHealth = 1000
+    maxHealth = 100
     attackDamage = 10
 
     declare scene: Game
@@ -378,6 +378,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.setRotation(0)
         this.healthBar.setAlpha(1)
         this.healthBar.setHealth(this.health, this.maxHealth)
+        this.setDepth(this.depth + 1)
     }
 
     die() {
@@ -390,9 +391,11 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
             this.facing = "right"
             this.setRotation(-1.571)
         }
+        this.stopMoving()
         this.idle()
         this.anims.stop()
         this.active = false
+        this.setDepth(this.depth - 1)
         this.createBloodPool()
 
         this.scene.tweens.add({
