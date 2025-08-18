@@ -378,6 +378,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         }
         const damage = this.attackDamage * Math.max(1, damageMultiplier)
         this.target.takeDamage(damage)
+        this.gainMana(this.manaPerAttack)
     }
 
     takeDamage(damage: number) {
@@ -448,11 +449,15 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         })
     }
 
-    gainMana(delta: number) {
-        const passedSeconds = delta / 1000
-        const manaGained = this.manaPerSecond * passedSeconds
+    gainMana(manaGained: number) {
         this.mana += manaGained
         this.manaBar.setValue(this.mana, this.maxMana)
+    }
+
+    regenMana(delta: number) {
+        const passedSeconds = delta / 1000
+        const manaGained = this.manaPerSecond * passedSeconds
+        this.gainMana(manaGained)
     }
 
     selfUpdate(delta: number) {
@@ -460,7 +465,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
             this.die()
         }
 
-        this.gainMana(delta)
+        this.regenMana(delta)
     }
 
     withTargetUpdate() {
