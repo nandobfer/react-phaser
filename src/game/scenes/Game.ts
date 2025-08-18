@@ -1,4 +1,5 @@
 import { Character, CharacterGroup } from "../characters/Character"
+import { Rogue } from "../characters/Rogue"
 import { EventBus } from "../EventBus"
 import { Scene } from "phaser"
 
@@ -6,8 +7,8 @@ export class Game extends Scene {
     camera: Phaser.Cameras.Scene2D.Camera
     background: Phaser.GameObjects.Image
     gameText: Phaser.GameObjects.Text
-    characters: CharacterGroup
-    enemies: CharacterGroup
+    teamA: CharacterGroup
+    teamB: CharacterGroup
 
     constructor() {
         super("Game")
@@ -33,20 +34,17 @@ export class Game extends Scene {
         //     .setOrigin(0.5)
         //     .setDepth(100)
 
-        this.characters = this.physics.add.group({ runChildUpdate: true })
-        const rogue = new Character(this, this.camera.width / 2, this.camera.height / 2, "rogue")
-        this.characters.add(rogue)
-        
-        this.enemies = this.physics.add.group({ runChildUpdate: true })
-        const knight = new Character(this, this.camera.width / 3, this.camera.height / 3, "knight")
-        this.enemies.add(knight)
+        this.teamA = this.physics.add.group({ runChildUpdate: true })
+        const rogue = new Rogue(this, this.camera.width / 2, this.camera.height / 2)
+        this.teamA.add(rogue)
 
-        this.physics.add.collider(this.characters, this.characters)
-        this.physics.add.collider(this.characters, this.enemies, (a, b) => {
-            a.handleCollisionWithEnemy()
-            b.handleCollisionWithEnemy()
-        })
-        this.physics.add.collider(this.enemies, this.enemies)
+        this.teamB = this.physics.add.group({ runChildUpdate: true })
+        const knight = new Character(this, this.camera.width / 3, this.camera.height / 3, "knight")
+        this.teamB.add(knight)
+
+        this.physics.add.overlap(this.teamA, this.teamA)
+        this.physics.add.overlap(this.teamA, this.teamB)
+        this.physics.add.overlap(this.teamB, this.teamB)
 
         EventBus.emit("current-scene-ready", this)
     }

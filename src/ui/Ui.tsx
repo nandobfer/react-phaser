@@ -23,7 +23,7 @@ export const Ui: React.FC<UiProps> = (props) => {
                 pointerEvents: "none",
             }}
         >
-            {props.scene instanceof Game && <CharactersRow charactersGroup={props.scene.characters} />}
+            {props.scene instanceof Game && <CharactersRow charactersGroup={props.scene.teamA} />}
         </Box>
     )
 }

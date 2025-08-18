@@ -16,11 +16,16 @@ export class CharacterGroup extends Phaser.GameObjects.Group {
 export class Character extends Phaser.Physics.Arcade.Sprite {
     facing: Direction = "down"
     target?: Character
-    speed = 30
     moving: boolean = true
     attacking: boolean = false
+    currentCollisions: Character[] = []
+    avoidanceRange = 64
+
+    speed = 30
+    attackRange = 64
 
     declare scene: Game
+    declare body: Phaser.Physics.Arcade.Body
 
     private glowFx: Phaser.FX.Glow
 
@@ -31,6 +36,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.scene.add.existing(this)
         this.scene.physics.add.existing(this)
         this.setCollideWorldBounds(true)
+        this.body.pushable = false
 
         this.createAnimations()
         this.handleMouseEvents()
@@ -101,7 +107,9 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         })
     }
 
-    newTarget(enemies: Character[]) {
+    newTarget() {
+        const enemyTeam = this.scene.teamA.contains(this) ? this.scene.teamB : this.scene.teamA
+        const enemies = enemyTeam.getChildren() as Character[]
         let closestEnemy: Character | undefined = undefined
         let closestEnemyDistance = 0
         for (const enemy of enemies) {
@@ -174,28 +182,94 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 
     isColliding() {
         // not working
-        return this.scene.physics.world.collide(this, this.target)
+        // const isColliding = this.scene.physics.world.collide(this, this.target)
+        console.log(this.body.touching)
+        const isColliding = this.body.touching.none === false
+        console.log(isColliding)
+        return isColliding
     }
 
     startMoving() {
         this.moving = true
     }
 
-    update(time: number, delta: number): void {
-        if (this.target) {
-            if (this.moving) {
-                this.moveToTarget()
-            } else {
-                if (this.isColliding()) {
-                    // attack
-                } else {
-                    // this.startMoving()
-                }
+    isInAttackRange(): boolean {
+        if (!this.target) return false
+
+        const distance = Phaser.Math.Distance.Between(this.x, this.y, this.target.x, this.target.y)
+
+        return distance <= this.attackRange
+    }
+
+    avoidOtherCharacters() {
+        // Get all characters to avoid (all except self)
+        const allCharacters = [...this.scene.teamA.getChildren(), ...this.scene.teamB.getChildren()].filter((c) => c !== this) as Character[]
+
+        const avoidanceVector = new Phaser.Math.Vector2()
+
+        for (const other of allCharacters) {
+            const distance = Phaser.Math.Distance.Between(this.x, this.y, other.x, other.y)
+
+            // If too close to any character (including non-targets)
+            if (distance < this.avoidanceRange) {
+                // Calculate push-away vector
+                const angle = Phaser.Math.Angle.Between(
+                    other.x,
+                    other.y, // From other to this (pushes away)
+                    this.x,
+                    this.y
+                )
+
+                const force = (this.avoidanceRange - distance) / this.avoidanceRange
+                avoidanceVector.x += Math.cos(angle) * force * this.speed
+                avoidanceVector.y += Math.sin(angle) * force * this.speed
+
+                this.currentCollisions.push(other)
             }
+        }
+
+        // Combine avoidance with target movement
+        if (this.target && avoidanceVector.length() > 0) {
+            const targetAngle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y)
+
+            // Original movement vector
+            const targetVector = new Phaser.Math.Vector2(Math.cos(targetAngle) * this.speed, Math.sin(targetAngle) * this.speed)
+
+            // Blend vectors (weighted average)
+            const combinedVector = new Phaser.Math.Vector2()
+                .add(targetVector.multiply(new Phaser.Math.Vector2(0.7))) // 70% toward target
+                .add(avoidanceVector.multiply(new Phaser.Math.Vector2(0.3))) // 30% avoidance
+
+            this.setVelocity(combinedVector.x, combinedVector.y)
+            this.updateFacingDirection()
+            this.play(`${this.name}-walking-${this.facing}`, true)
+        }
+    }
+
+    handleAttack() {
+        // Implement your attack logic here
+        console.log(`${this.name} attacking ${this.target?.name}!`)
+        // this.play(`${this.name}-attack-${this.facing}`, true)
+    }
+
+    hasTargetUpdate() {
+        if (this.isInAttackRange()) {
+            this.stopMoving()
+            this.idle()
+            this.handleAttack() // You'll implement this
         } else {
-            const enemyTeam = this.scene.characters.contains(this) ? this.scene.enemies : this.scene.characters
-            const enemies = enemyTeam.getChildren() as Character[]
-            this.newTarget(enemies)
+            this.moveToTarget()
+            this.avoidOtherCharacters()
+        }
+    }
+
+    update(time: number, delta: number): void {
+        this.currentCollisions = []
+
+        if (this.target) {
+            this.hasTargetUpdate()
+        } else {
+            this.newTarget()
         }
     }
 }
