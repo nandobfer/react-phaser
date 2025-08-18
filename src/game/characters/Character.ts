@@ -21,6 +21,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     isAttacking: boolean = false
     currentCollisions: Character[] = []
     avoidanceRange = 64
+    originalDepth: number
 
     speed = 30
     attackRange = 1
@@ -49,6 +50,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.scene.physics.add.existing(this)
         this.setCollideWorldBounds(true)
         this.body.pushable = false
+        this.originalDepth = this.depth
 
         this.createAnimations()
         this.handleMouseEvents()
@@ -378,7 +380,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.setRotation(0)
         this.healthBar.setAlpha(1)
         this.healthBar.setHealth(this.health, this.maxHealth)
-        this.setDepth(this.depth + 1)
+        this.setDepth(this.originalDepth)
     }
 
     die() {
