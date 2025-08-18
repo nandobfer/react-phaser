@@ -22,11 +22,11 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     avoidanceRange = 64
 
     speed = 30
-    attackRange = 64
+    attackRange = 1
     attackSpeed = 1
 
     health = 0
-    maxHealth = 100
+    maxHealth = 1000
     attackDamage = 10
 
     declare scene: Game
@@ -61,10 +61,9 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     }
 
     createAnimations() {
-        this.extractAnimationsFromSpritesheet("attacking1", 52, 8)
         this.extractAnimationsFromSpritesheet("walking", 104, 9)
-        this.extractAnimationsFromSpritesheet("attacking2", 156, 6)
         this.extractAnimationsFromSpritesheet("idle", 286, 2)
+        this.extractAttackingAnimation()
     }
     // always 4 animations, top > left > down > right
     // 7) 0 - 52: spellcasting
@@ -84,6 +83,11 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
             })
             currentFrameCount += framesPerRow + offsetFrames
         }
+    }
+
+    extractAttackingAnimation() {
+        this.extractAnimationsFromSpritesheet("attacking1", 52, 8)
+        this.extractAnimationsFromSpritesheet("attacking2", 156, 6)
     }
 
     handleAnimationUpdate(animation: Phaser.Animations.Animation, frame: Phaser.Animations.AnimationFrame) {
@@ -270,7 +274,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 
         const distance = Phaser.Math.Distance.Between(this.x, this.y, this.target.x, this.target.y)
 
-        return distance <= this.attackRange
+        return distance <= this.attackRange * 64
     }
 
     avoidOtherCharacters() {

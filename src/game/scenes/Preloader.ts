@@ -39,7 +39,7 @@ export class Preloader extends Scene {
     }
 
     loadCharacterSpritesheets() {
-        const available_sheets = ["rogue", "knight"]
+        const available_sheets = ["rogue", "knight", "archer"]
 
         for (const character_sheet of available_sheets) {
             this.load.spritesheet(character_sheet, `spritesheets/characters/${character_sheet}.png`, {

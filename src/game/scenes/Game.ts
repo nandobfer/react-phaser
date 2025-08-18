@@ -1,3 +1,4 @@
+import { Archer } from "../characters/Archer"
 import { Character, CharacterGroup } from "../characters/Character"
 import { Rogue } from "../characters/Rogue"
 import { EventBus } from "../EventBus"
@@ -38,6 +39,8 @@ export class Game extends Scene {
         this.teamA = this.physics.add.group({ runChildUpdate: true })
         const rogue = new Rogue(this, this.camera.width / 2, this.camera.height / 2)
         this.teamA.add(rogue)
+        const archer = new Archer(this, this.camera.width / 2.2, this.camera.height / 1.8)
+        this.teamA.add(archer)
 
         this.teamB = this.physics.add.group({ runChildUpdate: true })
         const knight = new Character(this, this.camera.width / 2.5, this.camera.height / 2.5, "knight")
