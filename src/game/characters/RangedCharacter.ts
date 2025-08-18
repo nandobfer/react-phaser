@@ -3,7 +3,7 @@ import { Game } from "../scenes/Game"
 import { Character } from "./Character"
 
 export class RangedCharacter<T extends Projectile> extends Character {
-    attackRange = 5
+    attackRange = 3
     projectile: new (character: RangedCharacter<T>) => T
 
     constructor(scene: Game, x: number, y: number, texture: string, projectile: new (character: RangedCharacter<T>) => T) {
