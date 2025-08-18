@@ -53,7 +53,6 @@ export class Projectile extends Phaser.Physics.Arcade.Image {
             if (!enemy.active) return
 
             this.owner.onAttack()
-            enemy.spawnHitEffect(this.onHitEffect)
 
             this.destroy()
         })

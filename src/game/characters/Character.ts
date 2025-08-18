@@ -1,6 +1,7 @@
 import Phaser, { Scene } from "phaser"
 import { Game } from "../scenes/Game"
 import { ProgressBar } from "../../ui/ProgressBar"
+import { spawnParrySpark } from "../fx/Parry"
 
 export type Direction = "left" | "up" | "down" | "right"
 
@@ -119,14 +120,12 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         onFrame: number
     ) {
         if (animation.key.includes(animationKey) && frame.index === onFrame && this.target) {
-            this.target.spawnHitEffect(effect)
             this.onAttack()
         }
     }
 
     spawnHitEffect(effectType: string) {
         if (effectType === "bleeding") {
-            // Create a new emitter instance for each hit
             const particles = this.scene.add.particles(this.x, this.y, "blood", {
                 lifespan: 600,
                 speed: { min: 30, max: 80 },
@@ -136,33 +135,17 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
                 frequency: -1,
             })
 
-            // Explode particles immediately
             particles.explode(10)
 
-            // Auto-destroy after particles complete
             this.scene.time.delayedCall(600, () => {
                 particles.destroy()
             })
         }
     }
 
-    spawnParryngEffect() {
-        const particles = this.scene.add.particles(this.x, this.y, "parry", {
-            lifespan: 600,
-            speed: { min: 30, max: 80 },
-            scale: { start: 0.15, end: 0 },
-            quantity: 5,
-            blendMode: "NORMAL",
-            frequency: -1,
-        })
-
-        // Explode particles immediately
-        particles.explode(10)
-
-        // Auto-destroy after particles complete
-        this.scene.time.delayedCall(600, () => {
-            particles.destroy()
-        })
+    spawnParryngEffect(attacker: Character) {
+        const ang = Phaser.Math.Angle.Between(attacker.x, attacker.y, this.x, this.y)
+        spawnParrySpark(this.scene, this.x, this.y, ang)
     }
 
     handleMouseEvents() {
@@ -172,16 +155,10 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.scene.input.enableDebug(this)
 
         this.on("pointerover", () => {
-            // this.setTint(0xffffff) // Visual feedback
-            // this.glowFx = this.postFX.addGlow(0xffffff, 0, 0) // (color, distance, quality, hide)
             this.animateGlow(5)
         })
 
         this.on("pointerout", () => {
-            // this.clearTint()
-            // if (this.glowFx) {
-            //     this.postFX.remove(this.glowFx)
-            // }
             this.animateGlow(0)
         })
 
@@ -396,11 +373,11 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
             damageMultiplier += this.critDamageMultiplier
         }
         const damage = this.attackDamage * Math.max(1, damageMultiplier)
-        this.target.takeDamage(damage)
+        this.target.takeDamage(damage, this)
         this.gainMana(this.manaPerAttack)
     }
 
-    takeDamage(damage: number) {
+    takeDamage(damage: number, attacker: Character, effect = "bleeding") {
         const incomingDamage = damage - this.armor
         const resistanceMultiplier = 1 - this.resistance / 100
         const finalDamage = Math.max(0, incomingDamage * resistanceMultiplier)
@@ -412,7 +389,10 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         }
 
         if (finalDamage === 0) {
-            this.spawnParryngEffect()
+            console.log(finalDamage)
+            this.spawnParryngEffect(attacker)
+        } else {
+            this.spawnHitEffect(effect)
         }
     }
 

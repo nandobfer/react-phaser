@@ -57,8 +57,8 @@ export class Preloader extends Scene {
             (() => {
                 const g = this.add.graphics()
                 g.fillStyle(0xffff00, 1)
-                g.fillRect(0, 0, 16, 3)
-                g.generateTexture("parry", 16, 3)
+                g.fillRect(0, 0, 50, 16)
+                g.generateTexture("parry", 50, 16)
                 g.destroy()
             })()
     }
