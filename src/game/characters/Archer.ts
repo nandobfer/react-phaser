@@ -12,7 +12,7 @@ export class Archer extends Character {
     }
 
     extractAttackingAnimation() {
-        this.extractAnimationsFromSpritesheet("attacking1", 221, 13)
-        this.extractAnimationsFromSpritesheet("attacking2", 221, 13)
+        this.extractAnimationsFromSpritesheet("attacking1", 208, 13)
+        this.extractAnimationsFromSpritesheet("attacking2", 208, 13)
     }
 }
