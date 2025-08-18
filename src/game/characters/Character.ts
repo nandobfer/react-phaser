@@ -50,7 +50,6 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.createAnimations()
         this.handleMouseEvents()
 
-        this.initHitEffects()
         this.on("animationupdate", this.handleAnimationUpdate, this)
 
         this.glowFx = this.postFX.addGlow(0xffffff, 8, 0) // White glow
@@ -87,26 +86,6 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
-    initHitEffects() {
-        if (!this.scene.textures.exists("blood")) {
-            console.error("Blood particle texture not loaded!")
-            return
-        }
-
-        // Create the emitter with the frame
-        this.particles = this.scene.add.particles(0, 0, "blood", {
-            lifespan: 600, // Particles live for 1 second
-            speed: { min: 30, max: 80 },
-            scale: { start: 0.15, end: 0 },
-            quantity: 5,
-            blendMode: "NORMAL",
-            active: false,
-            frequency: -1, // Only emit when manually triggered
-        })
-
-        this.effectPool.push(this.particles)
-    }
-
     handleAnimationUpdate(animation: Phaser.Animations.Animation, frame: Phaser.Animations.AnimationFrame) {
         this.triggerEffectonTarget(animation, frame, "bleeding", "attacking1", 5)
         this.triggerEffectonTarget(animation, frame, "bleeding", "attacking2", 5)
@@ -127,32 +106,24 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 
     spawnHitEffect(effectType: string) {
         if (effectType === "bleeding") {
-            const emitter = this.getAvailableEmitter()
-            if (!emitter) return
+            // Create a new emitter instance for each hit
+            const particles = this.scene.add.particles(this.x, this.y, "blood", {
+                lifespan: 600,
+                speed: { min: 30, max: 80 },
+                scale: { start: 0.15, end: 0 },
+                quantity: 5,
+                blendMode: "NORMAL",
+                frequency: -1,
+            })
 
-            // Reset and position the emitter
-            emitter.setPosition(this.x, this.y)
-            emitter.setActive(true)
+            // Explode particles immediately
+            particles.explode(10)
 
-            // Emit a burst of particles
-            emitter.explode(10)
-
-            // Automatically return to pool after emission
+            // Auto-destroy after particles complete
             this.scene.time.delayedCall(600, () => {
-                emitter.setActive(false)
-                this.activeEffects.delete(emitter)
+                particles.destroy()
             })
         }
-    }
-
-    getAvailableEmitter() {
-        for (const emitter of this.effectPool) {
-            if (!this.activeEffects.has(emitter)) {
-                this.activeEffects.add(emitter)
-                return emitter
-            }
-        }
-        return undefined
     }
 
     handleMouseEvents() {
@@ -388,9 +359,37 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     }
 
     die() {
+        if (this.facing === "left" || this.facing === "up") {
+            this.facing = "left"
+            this.setRotation(1.571)
+        }
+
+        if (this.facing === "right" || this.facing === "down") {
+            this.facing = "right"
+            this.setRotation(-1.571)
+        }
         this.idle()
         this.anims.stop()
         this.active = false
+        this.createBloodPool()
+    }
+
+    private createBloodPool() {
+        const poolSize = Phaser.Math.FloatBetween(0.3, 0.8)
+
+        const bloodPool = this.scene.add
+            .image(this.x, this.y + 10, "blood")
+            .setDepth(this.depth - 1)
+            .setScale(poolSize)
+            .setAlpha(0)
+            .setRotation(Phaser.Math.FloatBetween(0, 2 * 3.14))
+
+        this.scene.tweens.add({
+            targets: bloodPool,
+            alpha: 0.95,
+            duration: Phaser.Math.FloatBetween(500, 1000),
+            ease: "Sine.easeIn",
+        })
     }
 
     selfUpdate() {
