@@ -40,7 +40,9 @@ export class Game extends Scene {
 
         this.teamB = this.physics.add.group({ runChildUpdate: true })
         const knight = new Character(this, this.camera.width / 2.5, this.camera.height / 2.5, "knight")
+        const knight2 = new Character(this, this.camera.width / 1.5, this.camera.height / 2.5, "knight")
         this.teamB.add(knight)
+        this.teamB.add(knight2)
 
         this.physics.add.overlap(this.teamA, this.teamA)
         this.physics.add.overlap(this.teamA, this.teamB)

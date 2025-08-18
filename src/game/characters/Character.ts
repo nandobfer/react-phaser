@@ -25,6 +25,10 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     attackRange = 64
     attackSpeed = 1
 
+    health = 0
+    maxHealth = 100
+    attackDamage = 10
+
     declare scene: Game
     declare body: Phaser.Physics.Arcade.Body
 
@@ -53,6 +57,8 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.glowFx.outerStrength = 0
 
         this.anims.play(`${this.name}-idle-down`)
+
+        this.reset()
     }
 
     createAnimations() {
@@ -113,8 +119,9 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         animationKey: string,
         onFrame: number
     ) {
-        if (animation.key.includes(animationKey) && frame.index === onFrame) {
-            this.target?.spawnHitEffect(effect)
+        if (animation.key.includes(animationKey) && frame.index === onFrame && this.target) {
+            this.target.spawnHitEffect(effect)
+            this.onAttack()
         }
     }
 
@@ -185,11 +192,16 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     }
 
     newTarget() {
+        this.stopMoving()
+        this.idle()
         const enemyTeam = this.scene.teamA.contains(this) ? this.scene.teamB : this.scene.teamA
         const enemies = enemyTeam.getChildren() as Character[]
         let closestEnemy: Character | undefined = undefined
         let closestEnemyDistance = 0
         for (const enemy of enemies) {
+            if (!enemy.active) {
+                continue
+            }
             const distance = Phaser.Math.Distance.Between(this.x, this.y, enemy.x, enemy.y)
             if (!closestEnemy) {
                 closestEnemy = enemy
@@ -204,6 +216,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         }
 
         this.target = closestEnemy
+        this.updateFacingDirection()
     }
 
     idle() {
@@ -239,14 +252,25 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     }
 
     private updateFacingDirection() {
-        if (!this.body) return
-        const { velocity } = this.body
+        if (!this.target) {
+            this.facing = "down"
+            return
+        }
 
-        // Determine primary direction based on velocity
-        if (Math.abs(velocity.x) > Math.abs(velocity.y)) {
-            this.facing = velocity.x > 0 ? "right" : "left"
+        const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y)
+
+        // Convert angle to degrees (0-360) for easier direction calculation
+        const degrees = Phaser.Math.RadToDeg(angle)
+
+        // Determine facing direction based on angle sectors
+        if (degrees >= -45 && degrees < 45) {
+            this.facing = "right"
+        } else if (degrees >= 45 && degrees < 135) {
+            this.facing = "down"
+        } else if (degrees >= 135 || degrees < -135) {
+            this.facing = "left"
         } else {
-            this.facing = velocity.y > 0 ? "down" : "up"
+            this.facing = "up"
         }
     }
 
@@ -324,10 +348,11 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     }
 
     handleAttack() {
-        if (this.isAttacking) {
+        if (this.isAttacking || !this.target?.active) {
             return
         }
 
+        this.updateFacingDirection()
         this.isAttacking = true
         const spriteVariant = Phaser.Math.RND.weightedPick([1, 2])
         const animKey = `${this.name}-attacking${spriteVariant}-${this.facing}`
@@ -343,7 +368,43 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         })
     }
 
-    hasTargetUpdate() {
+    onAttack() {
+        if (!this.target) return
+
+        const damage = this.attackDamage
+        this.target.takeDamage(damage)
+    }
+
+    takeDamage(damage: number) {
+        this.health -= damage
+        if (this.health <= 0) {
+            this.die()
+        }
+    }
+
+    reset() {
+        this.health = this.maxHealth
+        this.active = true
+    }
+
+    die() {
+        this.idle()
+        this.anims.stop()
+        this.active = false
+    }
+
+    selfUpdate() {
+        if (this.health <= 0) {
+            this.die()
+        }
+    }
+
+    withTargetUpdate() {
+        if (!this.target?.active) {
+            this.newTarget()
+            return
+        }
+
         if (this.isInAttackRange()) {
             this.stopMoving()
             // this.idle()
@@ -358,9 +419,11 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.currentCollisions = []
 
         if (this.target) {
-            this.hasTargetUpdate()
+            this.withTargetUpdate()
         } else {
             this.newTarget()
         }
+
+        this.selfUpdate()
     }
 }
