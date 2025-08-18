@@ -5,6 +5,7 @@ export class Rogue extends Character {
     attackSpeed = 1.5
     speed = 50
     attackDamage = 20
+    critChance = 50
 
     constructor(scene: Game, x: number, y: number) {
         super(scene, x, y, "rogue")

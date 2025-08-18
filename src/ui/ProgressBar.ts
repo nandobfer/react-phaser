@@ -1,18 +1,13 @@
 // src/ui/HealthBar.ts
 import Phaser from "phaser"
 
-type HealthBarOptions = {
-    width?: number
-    height?: number
-    offsetY?: number
-    showWhenFull?: boolean
-    bgColor?: number
-    fillColor?: number
-    borderColor?: number
-    borderWidth?: number
+export interface BarOptions {
+    color: number
+    offsetY: number
+    interpolateColor?: boolean
 }
 
-export class HealthBar {
+export class ProgressBar {
     private scene: Phaser.Scene
     private target: Phaser.GameObjects.Sprite
     private bg: Phaser.GameObjects.Graphics
@@ -25,19 +20,21 @@ export class HealthBar {
     private borderWidth: number
     private bgColor: number
     private fillColor: number
+    private interpolateColor: boolean
 
-    constructor(target: Phaser.GameObjects.Sprite) {
+    constructor(target: Phaser.GameObjects.Sprite, options: BarOptions) {
         this.target = target
         this.scene = this.target.scene
 
         this.width = 30
         this.height = 4
-        this.offsetY = -25
+        this.offsetY = options.offsetY
         this.showWhenFull = false
         this.borderColor = 0x000000
         this.borderWidth = 1
         this.bgColor = 0x222222
-        this.fillColor = 0x2ecc71
+        this.fillColor = options.color
+        this.interpolateColor = !!options.interpolateColor
 
         this.bg = this.scene.add.graphics({ x: 0, y: 0 }).setDepth(target.depth + 100)
         this.bar = this.scene.add.graphics({ x: 0, y: 0 }).setDepth(target.depth + 101)
@@ -68,20 +65,23 @@ export class HealthBar {
         this.bar.setAlpha(a)
     }
 
-    setHealth(current: number, max: number): void {
+    setValue(current: number, max: number): void {
         const ratio = Phaser.Math.Clamp(max > 0 ? current / max : 0, 0, 1)
         // Hide at full HP if desired
-        const shouldShow = this.showWhenFull ? true : ratio < 1
-        this.setVisible(shouldShow && this.target.active)
+        // const shouldShow = this.showWhenFull ? true : ratio < 1
+        this.setVisible(this.target.active)
+        let fillColor = this.fillColor
 
-        // Color shift (green -> yellow -> red)
-        const fill = Phaser.Display.Color.Interpolate.ColorWithColor(
-            Phaser.Display.Color.ValueToColor(0xe74c3c), // red
-            Phaser.Display.Color.ValueToColor(0x2ecc71), // green
-            100,
-            Math.floor(ratio * 100)
-        )
-        this.fillColor = Phaser.Display.Color.GetColor(fill.r, fill.g, fill.b)
+        if (this.interpolateColor) {
+            // Color shift (green -> yellow -> red)
+            const fill = Phaser.Display.Color.Interpolate.ColorWithColor(
+                Phaser.Display.Color.ValueToColor(0xe74c3c), // red
+                Phaser.Display.Color.ValueToColor(this.fillColor), // green
+                100,
+                Math.floor(ratio * 100)
+            )
+            fillColor = Phaser.Display.Color.GetColor(fill.r, fill.g, fill.b)
+        }
 
         // Redraw
         this.bg.clear()
@@ -91,8 +91,13 @@ export class HealthBar {
         this.bg.strokeRect(0, 0, this.width, this.height)
 
         this.bar.clear()
-        this.bar.fillStyle(this.fillColor, 1)
+        this.bar.fillStyle(fillColor, 1)
         this.bar.fillRect(0, 0, Math.max(0, Math.floor(this.width * ratio)), this.height)
+    }
+
+    reset(maxValue: number) {
+        this.setAlpha(1)
+        this.setValue(maxValue, maxValue)
     }
 
     destroy(): void {

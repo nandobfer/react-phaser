@@ -20,7 +20,7 @@ export class Game extends Scene {
         // this.camera.setBackgroundColor(0x00ff00);
 
         this.background = this.add.image(800, 512, "arena")
-        this.background.setDepth(-1)
+        this.background.setDepth(-2)
         // this.background.setScale(2)
         // this.background.setAlpha(0.1);
 

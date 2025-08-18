@@ -1,6 +1,6 @@
 import Phaser, { Scene } from "phaser"
 import { Game } from "../scenes/Game"
-import { HealthBar } from "../../ui/HealthBar"
+import { ProgressBar } from "../../ui/ProgressBar"
 
 export type Direction = "left" | "up" | "down" | "right"
 
@@ -23,13 +23,20 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     avoidanceRange = 64
     originalDepth: number
 
-    speed = 30
-    attackRange = 1
-    attackSpeed = 1
-
     health = 0
     maxHealth = 100
+    attackSpeed = 1
     attackDamage = 10
+    attackRange = 1
+    mana = 0
+    maxMana = 100
+    manaPerSecond = 10
+    manaPerAttack = 10
+    armor = 0
+    resistance = 0
+    speed = 30
+    critChance = 10
+    critDamageMultiplier = 2
 
     declare scene: Game
     declare body: Phaser.Physics.Arcade.Body
@@ -40,7 +47,8 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     activeEffects: Set<Phaser.GameObjects.Particles.ParticleEmitter> = new Set()
     particles?: Phaser.GameObjects.Particles.ParticleEmitter
 
-    private healthBar: HealthBar
+    private healthBar: ProgressBar
+    private manaBar: ProgressBar
 
     constructor(scene: Game, x: number, y: number, name: string) {
         super(scene, x, y, name)
@@ -62,7 +70,8 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 
         this.anims.play(`${this.name}-idle-down`)
 
-        this.healthBar = new HealthBar(this)
+        this.healthBar = new ProgressBar(this, { color: 0x2ecc71, offsetY: -30, interpolateColor: true })
+        this.manaBar = new ProgressBar(this, { color: 0x3498db, offsetY: -25, interpolateColor: true })
 
         this.reset()
     }
@@ -361,14 +370,19 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 
     onAttack() {
         if (!this.target) return
+        let damageMultiplier = 0
 
-        const damage = this.attackDamage
+        const isCrit = Phaser.Math.FloatBetween(0, 100) <= this.critChance
+        if (isCrit) {
+            damageMultiplier += this.critDamageMultiplier
+        }
+        const damage = this.attackDamage * Math.max(1, damageMultiplier)
         this.target.takeDamage(damage)
     }
 
     takeDamage(damage: number) {
         this.health -= damage
-        this.healthBar.setHealth(this.health, this.maxHealth)
+        this.healthBar.setValue(this.health, this.maxHealth)
         if (this.health <= 0) {
             this.die()
         }
@@ -376,10 +390,11 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 
     reset() {
         this.health = this.maxHealth
+        this.mana = 0
         this.active = true
         this.setRotation(0)
-        this.healthBar.setAlpha(1)
-        this.healthBar.setHealth(this.health, this.maxHealth)
+        this.healthBar.reset(this.maxHealth)
+        this.manaBar.reset(this.mana)
         this.setDepth(this.originalDepth)
     }
 
@@ -404,8 +419,14 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
             targets: { a: 1 },
             a: 0,
             duration: 300,
-            onUpdate: (tw, target: any) => this.healthBar.setAlpha(target.a),
-            onComplete: () => this.healthBar.setVisible(false),
+            onUpdate: (tw, target: any) => {
+                this.healthBar.setAlpha(target.a)
+                this.manaBar.setAlpha(target.a)
+            },
+            onComplete: () => {
+                this.healthBar.setVisible(false)
+                this.manaBar.setVisible(false)
+            },
         })
     }
 
@@ -460,5 +481,6 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 
         this.selfUpdate()
         this.healthBar.updatePosition()
+        this.manaBar.updatePosition()
     }
 }
