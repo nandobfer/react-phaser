@@ -1,5 +1,6 @@
 import Phaser, { Scene } from "phaser"
 import { Game } from "../scenes/Game"
+import { HealthBar } from "../../ui/HealthBar"
 
 export type Direction = "left" | "up" | "down" | "right"
 
@@ -38,6 +39,8 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     activeEffects: Set<Phaser.GameObjects.Particles.ParticleEmitter> = new Set()
     particles?: Phaser.GameObjects.Particles.ParticleEmitter
 
+    private healthBar: HealthBar
+
     constructor(scene: Game, x: number, y: number, name: string) {
         super(scene, x, y, name)
 
@@ -56,6 +59,8 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.glowFx.outerStrength = 0
 
         this.anims.play(`${this.name}-idle-down`)
+
+        this.healthBar = new HealthBar(this)
 
         this.reset()
     }
@@ -361,6 +366,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 
     takeDamage(damage: number) {
         this.health -= damage
+        this.healthBar.setHealth(this.health, this.maxHealth)
         if (this.health <= 0) {
             this.die()
         }
@@ -369,6 +375,9 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     reset() {
         this.health = this.maxHealth
         this.active = true
+        this.setRotation(0)
+        this.healthBar.setAlpha(1)
+        this.healthBar.setHealth(this.health, this.maxHealth)
     }
 
     die() {
@@ -385,6 +394,14 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.anims.stop()
         this.active = false
         this.createBloodPool()
+
+        this.scene.tweens.add({
+            targets: { a: 1 },
+            a: 0,
+            duration: 300,
+            onUpdate: (tw, target: any) => this.healthBar.setAlpha(target.a),
+            onComplete: () => this.healthBar.setVisible(false),
+        })
     }
 
     private createBloodPool() {
@@ -437,5 +454,6 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         }
 
         this.selfUpdate()
+        this.healthBar.updatePosition()
     }
 }
