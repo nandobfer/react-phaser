@@ -31,6 +31,7 @@ export class Preloader extends Scene {
         this.load.image("star", "star.png")
 
         this.loadCharacterSpritesheets()
+        this.loadParticles()
     }
 
     create() {
@@ -46,5 +47,9 @@ export class Preloader extends Scene {
                 frameHeight: 64,
             })
         }
+    }
+
+    loadParticles() {
+        this.load.image("blood", "particles/blood.png")
     }
 }

@@ -23,12 +23,16 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 
     speed = 30
     attackRange = 64
-    attackSpeed = 0.5
+    attackSpeed = 1
 
     declare scene: Game
     declare body: Phaser.Physics.Arcade.Body
 
     private glowFx: Phaser.FX.Glow
+
+    effectPool: Phaser.GameObjects.Particles.ParticleEmitter[] = []
+    activeEffects: Set<Phaser.GameObjects.Particles.ParticleEmitter> = new Set()
+    particles?: Phaser.GameObjects.Particles.ParticleEmitter
 
     constructor(scene: Game, x: number, y: number, name: string) {
         super(scene, x, y, name)
@@ -41,6 +45,9 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 
         this.createAnimations()
         this.handleMouseEvents()
+
+        this.initHitEffects()
+        this.on("animationupdate", this.handleAnimationUpdate, this)
 
         this.glowFx = this.postFX.addGlow(0xffffff, 8, 0) // White glow
         this.glowFx.outerStrength = 0
@@ -72,6 +79,73 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
             })
             currentFrameCount += framesPerRow + offsetFrames
         }
+    }
+
+    initHitEffects() {
+        if (!this.scene.textures.exists("blood")) {
+            console.error("Blood particle texture not loaded!")
+            return
+        }
+
+        // Create the emitter with the frame
+        this.particles = this.scene.add.particles(0, 0, "blood", {
+            lifespan: 600, // Particles live for 1 second
+            speed: { min: 30, max: 80 },
+            scale: { start: 0.15, end: 0 },
+            quantity: 5,
+            blendMode: "NORMAL",
+            active: false,
+            frequency: -1, // Only emit when manually triggered
+        })
+
+        this.effectPool.push(this.particles)
+    }
+
+    handleAnimationUpdate(animation: Phaser.Animations.Animation, frame: Phaser.Animations.AnimationFrame) {
+        this.triggerEffectonTarget(animation, frame, "bleeding", "attacking1", 5)
+        this.triggerEffectonTarget(animation, frame, "bleeding", "attacking2", 5)
+    }
+
+    triggerEffectonTarget(
+        animation: Phaser.Animations.Animation,
+        frame: Phaser.Animations.AnimationFrame,
+        effect: string,
+        animationKey: string,
+        onFrame: number
+    ) {
+        if (animation.key.includes(animationKey) && frame.index === onFrame) {
+            this.target?.spawnHitEffect(effect)
+        }
+    }
+
+    spawnHitEffect(effectType: string) {
+        if (effectType === "bleeding") {
+            const emitter = this.getAvailableEmitter()
+            if (!emitter) return
+
+            // Reset and position the emitter
+            emitter.setPosition(this.x, this.y)
+            emitter.setActive(true)
+
+            // Emit a burst of particles
+            emitter.explode(10)
+
+            // Automatically return to pool after emission
+            this.scene.time.delayedCall(600, () => {
+                emitter.setActive(false)
+                this.activeEffects.delete(emitter)
+            })
+        }
+    }
+
+    getAvailableEmitter() {
+        for (const emitter of this.effectPool) {
+            if (!this.activeEffects.has(emitter)) {
+                this.activeEffects.add(emitter)
+                return emitter
+            }
+        }
+        return undefined
     }
 
     handleMouseEvents() {
@@ -254,10 +328,12 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
             return
         }
 
-        const animKey = `${this.name}-attacking1-${this.facing}`
+        this.isAttacking = true
+        const spriteVariant = Phaser.Math.RND.weightedPick([1, 2])
+        const animKey = `${this.name}-attacking${spriteVariant}-${this.facing}`
         const anim = this.anims.get(animKey)
 
-        this.play({ key: `${this.name}-attacking1-${this.facing}`, frameRate: anim.frames.length * this.attackSpeed, repeat: 0 }, true)
+        this.play({ key: animKey, frameRate: anim.frames.length * this.attackSpeed, repeat: 0 }, true)
 
         this.once("animationcomplete", () => {
             this.isAttacking = false
