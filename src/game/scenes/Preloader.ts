@@ -41,10 +41,6 @@ export class Preloader extends Scene {
         const available_sheets = ["rogue", "knight"]
 
         for (const character_sheet of available_sheets) {
-            // always 4 animations, top > left > down > right
-            // 7) 0 - 52: spellcasting
-            // 8) 53 - 105: thrusting
-            // 9) 104 - 158: walking
             this.load.spritesheet(character_sheet, `spritesheets/characters/${character_sheet}.png`, {
                 frameWidth: 64,
                 frameHeight: 64,

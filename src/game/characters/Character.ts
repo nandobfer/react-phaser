@@ -17,12 +17,13 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     facing: Direction = "down"
     target?: Character
     moving: boolean = true
-    attacking: boolean = false
+    isAttacking: boolean = false
     currentCollisions: Character[] = []
     avoidanceRange = 64
 
     speed = 30
     attackRange = 64
+    attackSpeed = 0.5
 
     declare scene: Game
     declare body: Phaser.Physics.Arcade.Body
@@ -48,13 +49,15 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     }
 
     createAnimations() {
-        // walking
+        this.extractAnimationsFromSpritesheet("attacking1", 52, 8)
         this.extractAnimationsFromSpritesheet("walking", 104, 9)
-
-        // idle
+        this.extractAnimationsFromSpritesheet("attacking2", 156, 6)
         this.extractAnimationsFromSpritesheet("idle", 286, 2)
     }
-
+    // always 4 animations, top > left > down > right
+    // 7) 0 - 52: spellcasting
+    // 8) 53 - 103: thrusting
+    // 9) 286 - 158: walking
     extractAnimationsFromSpritesheet(key: string, startingFrame: number, framesPerRow: number) {
         const directions: Direction[] = ["up", "left", "down", "right"]
         let currentFrameCount = startingFrame
@@ -247,15 +250,24 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     }
 
     handleAttack() {
-        // Implement your attack logic here
-        console.log(`${this.name} attacking ${this.target?.name}!`)
-        // this.play(`${this.name}-attack-${this.facing}`, true)
+        if (this.isAttacking) {
+            return
+        }
+
+        const animKey = `${this.name}-attacking1-${this.facing}`
+        const anim = this.anims.get(animKey)
+
+        this.play({ key: `${this.name}-attacking1-${this.facing}`, frameRate: anim.frames.length * this.attackSpeed, repeat: 0 }, true)
+
+        this.once("animationcomplete", () => {
+            this.isAttacking = false
+        })
     }
 
     hasTargetUpdate() {
         if (this.isInAttackRange()) {
             this.stopMoving()
-            this.idle()
+            // this.idle()
             this.handleAttack() // You'll implement this
         } else {
             this.moveToTarget()
