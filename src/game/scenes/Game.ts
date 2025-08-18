@@ -1,5 +1,6 @@
 import { Archer } from "../characters/Archer"
 import { Character, CharacterGroup } from "../characters/Character"
+import { Knight } from "../characters/Knight"
 import { Rogue } from "../characters/Rogue"
 import { EventBus } from "../EventBus"
 import { Scene } from "phaser"
@@ -43,8 +44,8 @@ export class Game extends Scene {
         this.teamA.add(archer)
 
         this.teamB = this.physics.add.group({ runChildUpdate: true })
-        const knight = new Character(this, this.camera.width / 2.5, this.camera.height / 2.5, "knight")
-        const knight2 = new Character(this, this.camera.width / 1.5, this.camera.height / 2.5, "knight")
+        const knight = new Knight(this, this.camera.width / 2.5, this.camera.height / 2.5)
+        const knight2 = new Knight(this, this.camera.width / 1.5, this.camera.height / 2.5)
         this.teamB.add(knight)
         this.teamB.add(knight2)
 

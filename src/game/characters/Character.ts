@@ -382,7 +382,9 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     }
 
     takeDamage(damage: number) {
-        this.health -= damage
+        const incomingDamage = damage - this.armor
+        const resistanceMultiplier = 1 - this.resistance / 100
+        this.health -= incomingDamage * resistanceMultiplier
         this.healthBar.setValue(this.health, this.maxHealth)
         if (this.health <= 0) {
             this.die()
