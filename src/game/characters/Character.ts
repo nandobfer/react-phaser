@@ -71,7 +71,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.anims.play(`${this.name}-idle-down`)
 
         this.healthBar = new ProgressBar(this, { color: 0x2ecc71, offsetY: -30, interpolateColor: true })
-        this.manaBar = new ProgressBar(this, { color: 0x3498db, offsetY: -25, interpolateColor: true })
+        this.manaBar = new ProgressBar(this, { color: 0x3498db, offsetY: -25 })
 
         this.reset()
     }
@@ -448,10 +448,19 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         })
     }
 
-    selfUpdate() {
+    gainMana(delta: number) {
+        const passedSeconds = delta / 1000
+        const manaGained = this.manaPerSecond * passedSeconds
+        this.mana += manaGained
+        this.manaBar.setValue(this.mana, this.maxMana)
+    }
+
+    selfUpdate(delta: number) {
         if (this.health <= 0) {
             this.die()
         }
+
+        this.gainMana(delta)
     }
 
     withTargetUpdate() {
@@ -479,7 +488,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
             this.newTarget()
         }
 
-        this.selfUpdate()
+        this.selfUpdate(delta)
         this.healthBar.updatePosition()
         this.manaBar.updatePosition()
     }
