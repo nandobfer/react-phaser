@@ -41,6 +41,13 @@ export class Game extends Scene {
         const knight = new Character(this, this.camera.width / 3, this.camera.height / 3, "knight")
         this.enemies.add(knight)
 
+        this.physics.add.collider(this.characters, this.characters)
+        this.physics.add.collider(this.characters, this.enemies, (a, b) => {
+            a.handleCollisionWithEnemy()
+            b.handleCollisionWithEnemy()
+        })
+        this.physics.add.collider(this.enemies, this.enemies)
+
         EventBus.emit("current-scene-ready", this)
     }
 

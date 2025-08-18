@@ -16,7 +16,9 @@ export class CharacterGroup extends Phaser.GameObjects.Group {
 export class Character extends Phaser.Physics.Arcade.Sprite {
     facing: Direction = "down"
     target?: Character
-    speed = 10
+    speed = 30
+    moving: boolean = true
+    attacking: boolean = false
 
     declare scene: Game
 
@@ -37,16 +39,6 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.glowFx.outerStrength = 0
 
         this.anims.play(`${this.name}-idle-down`)
-    }
-
-    update(time: number, delta: number): void {
-        if (this.target) {
-            this.moveToTarget()
-        } else {
-            const enemyTeam = this.scene.characters.contains(this) ? this.scene.enemies : this.scene.characters
-            const enemies = enemyTeam.getChildren() as Character[]
-            this.newTarget(enemies)
-        }
     }
 
     createAnimations() {
@@ -129,13 +121,24 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.target = closestEnemy
     }
 
+    idle() {
+        this.play(`${this.name}-idle-${this.facing}`, true)
+    }
+
+    stopMoving() {
+        this.moving = false
+        this.setVelocity(0, 0)
+    }
+
     moveToTarget() {
         if (!this.target || !this.target.active) {
             this.target = undefined
-            this.setVelocity(0, 0)
-            this.play(`${this.name}-idle-${this.facing}`, true)
+            this.idle()
             return
         }
+
+        // const distance = Phaser.Math.Distance.Between(this.x, this.y, this.target.x, this.target.y)
+        // console.log(distance)
 
         // Calculate direction vector
         const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y)
@@ -159,6 +162,40 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
             this.facing = velocity.x > 0 ? "right" : "left"
         } else {
             this.facing = velocity.y > 0 ? "down" : "up"
+        }
+    }
+
+    handleCollisionWithEnemy() {
+        if (!this.target) return
+
+        this.stopMoving()
+        this.idle()
+    }
+
+    isColliding() {
+        // not working
+        return this.scene.physics.world.collide(this, this.target)
+    }
+
+    startMoving() {
+        this.moving = true
+    }
+
+    update(time: number, delta: number): void {
+        if (this.target) {
+            if (this.moving) {
+                this.moveToTarget()
+            } else {
+                if (this.isColliding()) {
+                    // attack
+                } else {
+                    // this.startMoving()
+                }
+            }
+        } else {
+            const enemyTeam = this.scene.characters.contains(this) ? this.scene.enemies : this.scene.characters
+            const enemies = enemyTeam.getChildren() as Character[]
+            this.newTarget(enemies)
         }
     }
 }
