@@ -20,6 +20,7 @@ export class CharacterGroup extends Phaser.GameObjects.Group {
         if (this.isPlayer) {
             this.setChildrenPlayer()
         }
+        this.resetMouseEvents()
     }
 
     override getChildren() {
@@ -40,6 +41,12 @@ export class CharacterGroup extends Phaser.GameObjects.Group {
         const characters = this.getChildren() as Character[]
         for (const character of characters) {
             character.isPlayer = true
+        }
+    }
+
+    private resetMouseEvents() {
+        const characters = this.getChildren() as Character[]
+        for (const character of characters) {
             character.resetMouseEvents()
         }
     }
@@ -47,6 +54,10 @@ export class CharacterGroup extends Phaser.GameObjects.Group {
     reset() {
         const characters = this.getChildren() as Character[]
         characters.forEach((character) => character.reset())
+
+        const y = this.isPlayer ? 503 : 166
+
+        Phaser.Actions.GridAlign(characters, { cellHeight: 64, cellWidth: 64, y, x: 561 })
     }
 }
 
@@ -110,7 +121,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.healthBar = new ProgressBar(this, { color: 0x2ecc71, offsetY: -30, interpolateColor: true })
         this.manaBar = new ProgressBar(this, { color: 0x3498db, offsetY: -25 })
 
-        this.reset()
+        // this.reset()
     }
 
     createAnimations() {
@@ -457,6 +468,8 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.healthBar.reset(this.maxHealth)
         this.manaBar.reset(this.mana)
         this.setDepth(this.originalDepth)
+        this.updateFacingDirection()
+        this.idle()
     }
 
     die() {

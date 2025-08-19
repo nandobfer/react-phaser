@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react"
 import { Box, ThemeProvider } from "@mui/material"
-import Phaser from "phaser"
 import { CharactersRow } from "./CharactersRow"
 import { Game } from "../game/scenes/Game"
 import { EventBus } from "../game/EventBus"
 import { useMuiTheme } from "../hooks/useMuiTheme"
+import { GameStateButtons } from "./GameStateButtons/GameStateButtons"
 
 interface UiProps {}
 
@@ -26,9 +26,15 @@ export const Ui: React.FC<UiProps> = (props) => {
                     padding: 5,
                     border: "1px solid red",
                     pointerEvents: "none",
+                    justifyContent: "space-between",
                 }}
             >
-                {game && <CharactersRow charactersGroup={game.playerTeam} />}
+                {game && (
+                    <>
+                        {/* <CharactersRow charactersGroup={game.playerTeam} /> */}
+                        <GameStateButtons game={game} />
+                    </>
+                )}
             </Box>
         </ThemeProvider>
     )

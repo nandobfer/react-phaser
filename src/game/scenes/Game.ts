@@ -13,7 +13,7 @@ export class Game extends Scene {
     gameText: Phaser.GameObjects.Text
     playerTeam: CharacterGroup
     enemyTeam: CharacterGroup
-    state: GameState = "fighting"
+    state: GameState = "idle"
     walls: Phaser.GameObjects.Group
     stage = 1
 
@@ -53,6 +53,9 @@ export class Game extends Scene {
 
         this.physics.add.collider(this.walls, this.playerTeam)
         this.physics.add.collider(this.walls, this.enemyTeam)
+
+        this.playerTeam.reset()
+        this.enemyTeam.reset()
 
         EventBus.emit("game-ready", this)
     }
@@ -109,7 +112,9 @@ export class Game extends Scene {
         EventBus.emit("gamestate", this.state)
     }
 
-    finishRound() {}
+    finishRound() {
+        this.playerTeam.reset()
+    }
 
     anyTeamWiped() {
         const aliveEnemyCharacters = this.enemyTeam.countActive()
