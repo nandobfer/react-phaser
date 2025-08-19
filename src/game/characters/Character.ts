@@ -1,10 +1,10 @@
 // src/game/characters/Character.ts
 import Phaser from "phaser"
 import { Game } from "../scenes/Game"
-import { ProgressBar } from "../../ui/ProgressBar"
+import { ProgressBar } from "../ui/ProgressBar"
 import { spawnParrySpark } from "../fx/Parry"
 import { EventBus } from "../EventBus"
-import { LevelBadge } from "../LevelBadge"
+import { LevelBadge } from "../ui/LevelBadge"
 
 export type Direction = "left" | "up" | "down" | "right"
 
@@ -97,8 +97,8 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 
         this.healthBar = new ProgressBar(this, { color: 0x2ecc71, offsetY: -30, interpolateColor: true })
         this.manaBar = new ProgressBar(this, { color: 0x3498db, offsetY: -25 })
-        this.levelBadge = new LevelBadge(this.scene, this, { offsetX: 22, offsetY: -15 })
-        this.levelBadge.setLevel(this.level)
+        this.levelBadge = new LevelBadge(this, { offsetX: 22, offsetY: -15 })
+        this.levelBadge.setValue(this.level)
     }
 
     reset() {
@@ -106,8 +106,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.mana = 0
         this.active = true
         this.setRotation(0)
-        this.healthBar.reset(this.maxHealth)
-        this.manaBar.reset(this.mana)
+        this.resetUi()
         this.setDepth(this.originalDepth)
         this.updateFacingDirection()
         this.stopMoving()
@@ -119,6 +118,14 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
             this.x = this.boardX
             this.y = this.boardY
         }
+    }
+
+    resetUi() {
+        this.healthBar.reset()
+        this.healthBar.setValue(this.maxHealth, this.maxHealth)
+        this.manaBar.reset()
+        this.manaBar.setValue(0, this.maxMana)
+        this.levelBadge.reset()
     }
 
     saveInStorage() {
