@@ -24,6 +24,9 @@ export class Grid {
     private insets: Insets
     private depthOverArena: number
 
+    private overlay!: Phaser.GameObjects.Graphics
+    private allowedRowStart!: number
+
     constructor(scene: Game, arena: Phaser.GameObjects.Image) {
         this.scene = scene
         this.arena = arena
@@ -52,10 +55,46 @@ export class Grid {
         // highlight rectangle
         this.hi = scene.add
             .rectangle(0, 0, this.cellW, this.cellH)
-            .setStrokeStyle(2, 0xffe066, 0.95)
+            .setStrokeStyle(2, 0xffffff, 0.95)
             .setFillStyle(0xfff6a0, 0.15)
             .setVisible(false)
             .setDepth(arena.depth + this.depthOverArena)
+
+        // overlay (all valid droppable cells)
+        this.overlay = scene.add
+            .graphics()
+            .setDepth(arena.depth + this.depthOverArena)
+            .setVisible(false)
+
+        // bottom 3 rows are valid
+        this.allowedRowStart = Math.max(0, this.rows - 3)
+        this.redrawOverlay()
+    }
+
+    private redrawOverlay() {
+        this.overlay.clear()
+        this.overlay.fillStyle(0xfff2a6, 0.12)
+        this.overlay.lineStyle(1, 0xffffff, 0.2)
+
+        const inset = 10
+        const w = this.cellW - inset
+        const h = this.cellH - inset
+
+        for (let row = this.allowedRowStart; row < this.rows; row++) {
+            for (let col = 0; col < this.cols; col++) {
+                const { x, y } = this.cellToTopLeft(col, row)
+                const rx = x + inset / 2
+                const ry = y + inset / 2
+                this.overlay.fillRect(rx, ry, w, h)
+                this.overlay.strokeRect(rx, ry, w, h)
+            }
+        }
+    }
+
+    private cellToTopLeft(col: number, row: number) {
+        const x = this.left + col * this.cellW
+        const y = this.top + row * this.cellH
+        return { x, y }
     }
 
     worldToCell(wx: number, wy: number) {
@@ -71,9 +110,13 @@ export class Grid {
         return { x, y }
     }
 
+    private isDroppableRow(row: number) {
+        return row >= this.allowedRowStart
+    }
+
     showHighlightAtWorld(wx: number, wy: number) {
         const cell = this.worldToCell(wx, wy)
-        if (!cell) {
+        if (!cell || !this.isDroppableRow(cell.row)) {
             this.hi.setVisible(false)
             return null
         }
@@ -88,11 +131,19 @@ export class Grid {
 
     snapSpriteToWorld(sprite: Phaser.GameObjects.Sprite, wx: number, wy: number) {
         const cell = this.worldToCell(wx, wy)
-        if (!cell) return false
+        if (!cell || !this.isDroppableRow(cell.row)) return false
         const { x, y } = this.cellToCenter(cell.col, cell.row)
         sprite.setPosition(x, y)
         const body = sprite.body as Phaser.Physics.Arcade.Body | undefined
-        body?.reset(x, y) // keep physics body in sync
+        body?.reset(x, y)
         return true
+    }
+
+    hideDropOverlay() {
+        this.overlay.setVisible(false)
+    }
+
+    showDropOverlay() {
+        this.overlay.setVisible(true)
     }
 }

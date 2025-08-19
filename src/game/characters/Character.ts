@@ -64,6 +64,8 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     activeEffects: Set<Phaser.GameObjects.Particles.ParticleEmitter> = new Set()
     particles?: Phaser.GameObjects.Particles.ParticleEmitter
 
+    private preDrag?: { x: number; y: number }
+
     private healthBar: ProgressBar
     private manaBar: ProgressBar
 
@@ -227,14 +229,16 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 
             this.on("dragstart", (pointer: Phaser.Input.Pointer) => {
                 if (this.scene.state !== "idle") return
+                // remember original pos in case drop is invalid
+                this.preDrag = { x: this.x, y: this.y }
+                // show allowed tiles overlay immediately
+                this.scene.grid.showDropOverlay()
                 this.scene.grid.showHighlightAtWorld(pointer.worldX, pointer.worldY)
             })
 
             this.on("drag", (pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
                 if (this.scene.state !== "idle") return
-                // Free drag follows the pointer
                 this.setPosition(dragX, dragY)
-                // Update tile highlight under the pointer
                 this.scene.grid.showHighlightAtWorld(pointer.worldX, pointer.worldY)
             })
 
@@ -248,11 +252,14 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
                     this.saveInStorage()
                 }
 
-                if (!snapped) {
-                    // optional: clamp back into arena if dropped outside
-                    // or keep last valid snapped cell by tracking it
+                if (!snapped && this.preDrag) {
+                    // revert if dropped outside allowed rows
+                    this.setPosition(this.preDrag.x, this.preDrag.y)
+                    this.body?.reset(this.preDrag.x, this.preDrag.y)
                 }
                 this.scene.grid.hideHighlight()
+                this.scene.grid.hideDropOverlay()
+                this.preDrag = undefined
             })
 
             // this.on("drag", (_: never, x: number, y: number) => {
