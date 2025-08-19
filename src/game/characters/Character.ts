@@ -58,6 +58,8 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     boardX = 0
     boardY = 0
 
+    experience = 0
+
     declare scene: Game
     declare body: Phaser.Physics.Arcade.Body
 
@@ -558,6 +560,24 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     destroyBars() {
         this.healthBar.destroy()
         this.manaBar.destroy()
+    }
+
+    increaseExp() {
+        this.experience += 1
+
+        if (this.experience === this.level * 2) {
+            this.levelUp()
+        }
+
+        this.saveInStorage()
+    }
+
+    levelUp() {
+        this.experience = 0
+        this.level += 1
+
+        this.maxHealth += 50
+        this.attackDamage += 5
     }
 
     selfUpdate(delta: number) {

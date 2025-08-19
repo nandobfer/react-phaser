@@ -21,6 +21,8 @@ export class Game extends Scene {
     stage = 1
     grid: Grid
 
+    playerGold = 0
+
     constructor() {
         super("Game")
     }
@@ -42,6 +44,7 @@ export class Game extends Scene {
         this.enemyTeam.reset()
 
         this.loadPlayerCharacters()
+        this.loadPlayerGold()
 
         EventBus.emit("game-ready", this)
     }
@@ -115,6 +118,17 @@ export class Game extends Scene {
         const aliveEnemyCharacters = this.enemyTeam.countActive()
         const alivePlayerCharacters = this.playerTeam.countActive()
         return aliveEnemyCharacters === 0 || alivePlayerCharacters === 0
+    }
+
+    loadPlayerGold() {
+        try {
+            const data = localStorage.getItem("gold")
+            if (data) {
+                this.playerGold = Number(data)
+            }
+        } catch (error) {
+            console.error("Error loading player gold:", error)
+        }
     }
 
     getSavedCharacters(): CharacterDto[] {

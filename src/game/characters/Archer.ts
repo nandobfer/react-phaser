@@ -15,4 +15,10 @@ export class Archer extends RangedCharacter<Arrow> {
     extractAttackingAnimation() {
         this.extractAnimationsFromSpritesheet("attacking", 208, 13)
     }
+
+    levelUp(): void {
+        super.levelUp()
+
+        this.attackDamage += 10
+    }
 }
