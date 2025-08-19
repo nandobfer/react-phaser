@@ -5,12 +5,15 @@ import { Rogue } from "../characters/Rogue"
 import { EventBus } from "../EventBus"
 import { Scene } from "phaser"
 
+export type GameState = "fighting" | "idle"
+
 export class Game extends Scene {
     camera: Phaser.Cameras.Scene2D.Camera
     background: Phaser.GameObjects.Image
     gameText: Phaser.GameObjects.Text
     teamA: CharacterGroup
     teamB: CharacterGroup
+    state: GameState = "idle"
 
     constructor() {
         super("Game")
@@ -20,10 +23,7 @@ export class Game extends Scene {
         this.camera = this.cameras.main
         // this.camera.setBackgroundColor(0x00ff00);
 
-        this.background = this.add.image(800, 512, "arena")
-        this.background.setDepth(-2)
-        // this.background.setScale(2)
-        // this.background.setAlpha(0.1);
+        this.createBackground()
 
         // this.gameText = this.add
         //     .text(512, 384, "Make something fun!\nand share it with us:\nsupport@phaser.io", {
@@ -56,8 +56,20 @@ export class Game extends Scene {
         EventBus.emit("current-scene-ready", this)
     }
 
+    createBackground() {
+        this.background = this.add.image(this.camera.width / 2, this.camera.height / 2, "arena")
+        this.background.setDepth(-2)
+        this.background.setScale(0.6)
+        // this.background.setAlpha(0.1);
+    }
+
     changeScene() {
         this.scene.start("GameOver")
+    }
+
+    changeState(state: GameState) {
+        this.state = state
+        EventBus.emit("gamestate", this.state)
     }
 
     update(time: number, delta: number): void {}

@@ -155,7 +155,9 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.scene.input.enableDebug(this)
 
         this.on("pointerover", () => {
-            this.animateGlow(5)
+            if (this.scene.state === "idle") {
+                this.animateGlow(5)
+            }
         })
 
         this.on("pointerout", () => {
@@ -163,7 +165,9 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         })
 
         this.on("drag", (_: never, x: number, y: number) => {
-            this.setPosition(x, y)
+            if (this.scene.state === "idle") {
+                this.setPosition(x, y)
+            }
         })
     }
 
