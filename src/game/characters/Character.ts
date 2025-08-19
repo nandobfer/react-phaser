@@ -108,7 +108,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.idle()
         this.target = undefined
 
-        if (this.isPlayer) {
+        if (this.isPlayer && this.boardX && this.boardY) {
             this.x = this.boardX
             this.y = this.boardY
         }
