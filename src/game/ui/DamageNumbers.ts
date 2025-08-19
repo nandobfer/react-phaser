@@ -4,7 +4,7 @@ import { Game } from "../scenes/Game"
 
 export type DamageTextOpts = {
     crit?: boolean
-    kind?: "normal" | "crit" | "block" | "heal"
+    kind?: "normal" | "crit" | "block" | "heal" | "fire" | "cold" | "poison" | "true"
     // overrides
     duration?: number
     float?: number
@@ -103,6 +103,18 @@ export function showDamageText(scene: Game, x: number, y: number, value: number 
             break
         case "heal":
             setTintOrColor(front, 0x7cfc00, "#7cfc00") // bright green
+            break
+        case "fire":
+            setTintOrColor(front, 0xff6b6b, "#ff6b6b")
+            break
+        case "cold":
+            setTintOrColor(front, 0x66d9ff, "#66d9ff")
+            break
+        case "poison":
+            setTintOrColor(front, 0x9ccc65, "#9ccc65")
+            break
+        case "true":
+            setTintOrColor(front, 0xce93d8, "#ce93d8")
             break
         default:
             setTintOrColor(front, 0xf2eee3, "#f2eee3") // warm white
