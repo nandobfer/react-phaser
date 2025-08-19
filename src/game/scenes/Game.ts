@@ -102,7 +102,6 @@ export class Game extends Scene {
             .setVisible(false)
             .refreshBody()
 
-        this.walls.setTint(0x00ff)
     }
 
     changeScene() {
