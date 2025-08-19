@@ -5,6 +5,7 @@ import { ProgressBar } from "../ui/ProgressBar"
 import { spawnParrySpark } from "../fx/Parry"
 import { EventBus } from "../EventBus"
 import { LevelBadge } from "../ui/LevelBadge"
+import { showDamageText } from "../ui/DamageNumbers"
 
 export type Direction = "left" | "up" | "down" | "right"
 
@@ -485,14 +486,21 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
             damageMultiplier += this.critDamageMultiplier
         }
         const damage = this.attackDamage * Math.max(1, damageMultiplier)
-        this.target.takeDamage(damage, this)
+        this.target.takeDamage(damage, this, "bleeding", { crit: isCrit })
         this.gainMana(this.manaPerAttack)
     }
 
-    takeDamage(damage: number, attacker: Character, effect = "bleeding") {
+    takeDamage(damage: number, attacker: Character, effect = "bleeding", opts?: { crit?: boolean }) {
         const incomingDamage = damage - this.armor
         const resistanceMultiplier = 1 - this.resistance / 100
         const finalDamage = Math.max(0, incomingDamage * resistanceMultiplier)
+
+        if (finalDamage <= 0) {
+            showDamageText(this.scene, this.x, this.y, "0", { color: "#cfd8dc" })
+        } else {
+            showDamageText(this.scene, this.x, this.y, Math.round(finalDamage), { crit: !!opts?.crit })
+        }
+
         this.health -= finalDamage
         this.healthBar.setValue(this.health, this.maxHealth)
         if (this.health <= 0) {
