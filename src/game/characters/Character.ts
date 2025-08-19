@@ -245,7 +245,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
             this.on("dragend", (pointer: Phaser.Input.Pointer) => {
                 if (this.scene.state !== "idle") return
                 // Snap to tile center at drop
-                const snapped = this.scene.grid.snapSpriteToWorld(this, pointer.worldX, pointer.worldY)
+                const snapped = this.scene.grid.snapCharacter(this, pointer.worldX, pointer.worldY)
                 if (snapped) {
                     this.boardX = this.x
                     this.boardY = this.y

@@ -1,6 +1,7 @@
 // src/game/grid/Grid.ts
 import Phaser from "phaser"
 import { Game } from "./scenes/Game"
+import { Character } from "./characters/Character"
 
 type Insets = { left: number; right: number; top: number; bottom: number }
 type GridOpts = {
@@ -129,13 +130,16 @@ export class Grid {
         this.hi.setVisible(false)
     }
 
-    snapSpriteToWorld(sprite: Phaser.GameObjects.Sprite, wx: number, wy: number) {
+    snapCharacter(character: Character, wx: number, wy: number) {
         const cell = this.worldToCell(wx, wy)
         if (!cell || !this.isDroppableRow(cell.row)) return false
         const { x, y } = this.cellToCenter(cell.col, cell.row)
-        sprite.setPosition(x, y)
-        const body = sprite.body as Phaser.Physics.Arcade.Body | undefined
-        body?.reset(x, y)
+        const alreadyInCellSprite = this.scene.playerTeam.getCharacterInPosition(x, y)
+        if (alreadyInCellSprite) {
+            alreadyInCellSprite.setPosition(character.boardX, character.boardY)
+        }
+        character.setPosition(x, y)
+        character.body.reset(x, y)
         return true
     }
 

@@ -65,4 +65,9 @@ export class CharacterGroup extends Phaser.GameObjects.Group {
 
         return this
     }
+
+    getCharacterInPosition(x: number, y: number) {
+        const characters = this.getChildren()
+        return characters.find((char) => char.x === x && char.y === y)
+    }
 }
