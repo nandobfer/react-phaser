@@ -1,65 +1,10 @@
-import Phaser, { Scene } from "phaser"
+import Phaser from "phaser"
 import { Game } from "../scenes/Game"
 import { ProgressBar } from "../../ui/ProgressBar"
 import { spawnParrySpark } from "../fx/Parry"
 import { EventBus } from "../EventBus"
 
 export type Direction = "left" | "up" | "down" | "right"
-
-export class CharacterGroup extends Phaser.GameObjects.Group {
-    isPlayer: boolean = false
-    constructor(
-        scene: Scene,
-        children?: Character[] | Phaser.Types.GameObjects.Group.GroupConfig | Phaser.Types.GameObjects.Group.GroupCreateConfig,
-        config?: (Phaser.Types.GameObjects.Group.GroupConfig | Phaser.Types.GameObjects.Group.GroupCreateConfig) & { isPlayer?: boolean }
-    ) {
-        super(scene, children, config)
-        scene.add.existing(this)
-        this.runChildUpdate = true
-        this.isPlayer = !!config?.isPlayer
-        if (this.isPlayer) {
-            this.setChildrenPlayer()
-        }
-        this.resetMouseEvents()
-    }
-
-    override getChildren() {
-        return super.getChildren() as Character[]
-    }
-
-    add(child: Character, addToScene?: boolean): this {
-        super.add(child, addToScene)
-        if (this.isPlayer) {
-            child.isPlayer = true
-            child.resetMouseEvents()
-        }
-
-        return this
-    }
-
-    private setChildrenPlayer() {
-        const characters = this.getChildren() as Character[]
-        for (const character of characters) {
-            character.isPlayer = true
-        }
-    }
-
-    private resetMouseEvents() {
-        const characters = this.getChildren() as Character[]
-        for (const character of characters) {
-            character.resetMouseEvents()
-        }
-    }
-
-    reset() {
-        const characters = this.getChildren() as Character[]
-        characters.forEach((character) => character.reset())
-
-        const y = this.isPlayer ? 503 : 166
-
-        Phaser.Actions.GridAlign(characters, { cellHeight: 64, cellWidth: 64, y, x: 561 })
-    }
-}
 
 export class Character extends Phaser.Physics.Arcade.Sprite {
     facing: Direction = "down"
@@ -120,8 +65,20 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 
         this.healthBar = new ProgressBar(this, { color: 0x2ecc71, offsetY: -30, interpolateColor: true })
         this.manaBar = new ProgressBar(this, { color: 0x3498db, offsetY: -25 })
+    }
 
-        // this.reset()
+    reset() {
+        this.health = this.maxHealth
+        this.mana = 0
+        this.active = true
+        this.setRotation(0)
+        this.healthBar.reset(this.maxHealth)
+        this.manaBar.reset(this.mana)
+        this.setDepth(this.originalDepth)
+        this.updateFacingDirection()
+        this.stopMoving()
+        this.idle()
+        this.target = undefined
     }
 
     createAnimations() {
@@ -458,18 +415,6 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         } else {
             this.spawnHitEffect(effect)
         }
-    }
-
-    reset() {
-        this.health = this.maxHealth
-        this.mana = 0
-        this.active = true
-        this.setRotation(0)
-        this.healthBar.reset(this.maxHealth)
-        this.manaBar.reset(this.mana)
-        this.setDepth(this.originalDepth)
-        this.updateFacingDirection()
-        this.idle()
     }
 
     die() {

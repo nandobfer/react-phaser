@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react"
 import { Box, Paper, Typography } from "@mui/material"
-import { Character, CharacterGroup } from "../game/characters/Character"
 import { CharacterSheet } from "./CharacterSheet/CharacterSheet"
+import { CharacterGroup } from "../game/characters/CharacterGroup"
 
 interface CharactersRowProps {
     charactersGroup: CharacterGroup

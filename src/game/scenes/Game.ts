@@ -1,5 +1,5 @@
 import { Archer } from "../characters/Archer"
-import { Character, CharacterGroup } from "../characters/Character"
+import { CharacterGroup } from "../characters/CharacterGroup"
 import { Knight } from "../characters/Knight"
 import { Rogue } from "../characters/Rogue"
 import { EventBus } from "../EventBus"
@@ -123,9 +123,11 @@ export class Game extends Scene {
     }
 
     update(time: number, delta: number): void {
-        if (this.anyTeamWiped()) {
-            this.changeState("idle")
-            this.finishRound()
+        if (this.state === "fighting") {
+            if (this.anyTeamWiped()) {
+                this.changeState("idle")
+                this.finishRound()
+            }
         }
     }
 }
