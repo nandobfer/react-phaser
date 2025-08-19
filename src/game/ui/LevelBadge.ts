@@ -1,6 +1,5 @@
 import Phaser from "phaser"
 import { Character } from "../characters/Character"
-import { Game } from "../scenes/Game"
 import { UiElement } from "./UiElement"
 
 type Opts = {

@@ -1,9 +1,7 @@
 // src/game/scenes/Game.ts
 
-import { Archer } from "../characters/Archer"
 import { CharacterGroup } from "../characters/CharacterGroup"
 import { Knight } from "../characters/Knight"
-import { Rogue } from "../characters/Rogue"
 import { EventBus } from "../EventBus"
 import { Scene } from "phaser"
 import { Grid } from "../Grid"
@@ -150,12 +148,11 @@ export class Game extends Scene {
     loadPlayerCharacters() {
         this.playerTeam.clear(true, true)
         const characters = this.getSavedCharacters()
-        console.log("Loading characters:", characters) // Debug log
 
         for (const dto of characters) {
             try {
-                console.log({ dto })
                 const character = CharacterRegistry.create(dto.name, this, dto.boardX, dto.boardY, dto.id)
+                character.loadFromDto(dto)
                 this.playerTeam.add(character)
             } catch (error) {
                 console.error("Error creating character:", error)

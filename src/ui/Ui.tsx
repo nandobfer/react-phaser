@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react"
 import { Box, ThemeProvider } from "@mui/material"
-import { Game } from "../game/scenes/Game"
 import { EventBus } from "../game/EventBus"
 import { useMuiTheme } from "../hooks/useMuiTheme"
 import { GameStateButtons } from "./GameStateButtons/GameStateButtons"
-import { CharacterRegistry } from "../game/characters/CharacterRegistry"
 import { NewCharacterModal } from "./NewCharacterModal/NewCharacterModal"
 import { useGameScene } from "../hooks/useGameScene"
 
@@ -16,8 +14,6 @@ export const Ui: React.FC<UiProps> = (props) => {
     const [chooseCharacterModalOpen, setChooseCharacterModalOpen] = useState(false)
 
     const handleFirstCharacterEmitted = () => {
-        const availableCharacters = CharacterRegistry.getAllRegistered()
-        console.log(availableCharacters)
         setChooseCharacterModalOpen(true)
     }
 

@@ -9,6 +9,5 @@ export class Rogue extends Character {
 
     constructor(scene: Game, x: number, y: number, id: string) {
         super(scene, x, y, "rogue", id)
-        console.log(this.id)
     }
 }

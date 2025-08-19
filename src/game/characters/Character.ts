@@ -101,6 +101,12 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.levelBadge.setValue(this.level)
     }
 
+    loadFromDto(dto: CharacterDto) {
+        for (const [key, value] of Object.entries(dto)) {
+            this[key as keyof this] = value
+        }
+    }
+
     reset() {
         this.health = this.maxHealth
         this.mana = 0
@@ -139,7 +145,6 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
             characters.push(dto) // Add new character
         }
         this.scene.savePlayerCharacters(characters)
-        console.log(dto)
     }
 
     createAnimations() {
@@ -339,9 +344,6 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
             return
         }
 
-        // const distance = Phaser.Math.Distance.Between(this.x, this.y, this.target.x, this.target.y)
-        // console.log(distance)
-
         // Calculate direction vector
         const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y)
 
@@ -383,15 +385,6 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 
         this.stopMoving()
         this.idle()
-    }
-
-    isColliding() {
-        // not working
-        // const isColliding = this.scene.physics.world.collide(this, this.target)
-        console.log(this.body.touching)
-        const isColliding = this.body.touching.none === false
-        console.log(isColliding)
-        return isColliding
     }
 
     startMoving() {
@@ -506,7 +499,6 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         }
 
         if (finalDamage === 0) {
-            console.log(finalDamage)
             this.spawnParryngEffect(attacker)
         } else {
             this.spawnHitEffect(effect)
