@@ -14,6 +14,7 @@ export class Game extends Scene {
     teamA: CharacterGroup
     teamB: CharacterGroup
     state: GameState = "idle"
+    walls: Phaser.GameObjects.Group
 
     constructor() {
         super("Game")
@@ -53,6 +54,9 @@ export class Game extends Scene {
         this.physics.add.overlap(this.teamA, this.teamB)
         this.physics.add.overlap(this.teamB, this.teamB)
 
+        this.physics.add.collider(this.walls, this.teamA)
+        this.physics.add.collider(this.walls, this.teamB)
+
         EventBus.emit("current-scene-ready", this)
     }
 
@@ -60,7 +64,45 @@ export class Game extends Scene {
         this.background = this.add.image(this.camera.width / 2, this.camera.height / 2, "arena")
         this.background.setDepth(-2)
         this.background.setScale(0.6)
-        // this.background.setAlpha(0.1);
+
+        // Walls (invisible colliders)
+        const thickness = 50 // adjust to match your arena border thickness
+        const arenaWidth = this.background.displayWidth
+        const arenaHeight = this.background.displayHeight
+        const centerX = this.camera.width / 2
+        const centerY = this.camera.height / 2
+
+        this.walls = this.physics.add.staticGroup()
+
+        // Top wall
+        this.walls
+            .create(centerX, centerY + 68 - arenaHeight / 2)
+            .setDisplaySize(arenaWidth, thickness)
+            .setVisible(false)
+            .refreshBody()
+
+        // Bottom wall
+        this.walls
+            .create(centerX, centerY - 90 + arenaHeight / 2)
+            .setDisplaySize(arenaWidth, thickness)
+            .setVisible(false)
+            .refreshBody()
+
+        // Left wall
+        this.walls
+            .create(centerX + 72 - arenaWidth / 2, centerY)
+            .setDisplaySize(thickness, arenaHeight)
+            .setVisible(false)
+            .refreshBody()
+
+        // Right wall
+        this.walls
+            .create(centerX - 72 + arenaWidth / 2, centerY)
+            .setDisplaySize(thickness, arenaHeight)
+            .setVisible(false)
+            .refreshBody()
+
+        this.walls.setTint(0x00ff)
     }
 
     changeScene() {
