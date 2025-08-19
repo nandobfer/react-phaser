@@ -28,12 +28,12 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = (props) => {
     const [character, setCharacter] = useState(props.character)
     const attributes: SheetDataItem[] = useMemo(
         () => [
-            { title: "Health", value: `${props.character.health} / ${props.character.maxHealth}` },
-            { title: "Mana", value: `${props.character.mana} / ${props.character.maxMana}` },
-            { title: "Attack Damage", value: props.character.attackDamage },
-            { title: "Attack Speed", value: `${props.character.attackSpeed} /s` },
-            { title: "Crit Chance", value: `${props.character.critChance} %` },
-            { title: "Crit Damage Multiplier", value: `x ${props.character.critDamageMultiplier}` },
+            { title: "Health", value: `${character.health} / ${character.maxHealth}` },
+            { title: "Mana", value: `${character.mana} / ${character.maxMana}` },
+            { title: "Attack Damage", value: character.attackDamage },
+            { title: "Attack Speed", value: `${character.attackSpeed} /s` },
+            { title: "Crit Chance", value: `${character.critChance} %` },
+            { title: "Crit Damage Multiplier", value: `x ${character.critDamageMultiplier}` },
         ],
         [character]
     )
