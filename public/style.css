@@ -15,6 +15,28 @@ body {
     align-items: center;
 }
 
+section {
+    display: contents;
+}
+
+.MuiPaper-root {
+    display: flex;
+    flex-shrink: 0;
+}
+
+.MuiBox-root {
+    display: flex;
+    flex-shrink: 0;
+}
+
+.MuiButton-root {
+    text-transform: none !important;
+}
+
+.MuiTab-root {
+    text-transform: none !important;
+}
+
 .spritePosition {
     margin: 10px 0 0 10px;
     font-size: 0.8em;

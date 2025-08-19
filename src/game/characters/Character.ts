@@ -20,7 +20,6 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     target?: Character
     moving: boolean = true
     isAttacking: boolean = false
-    currentCollisions: Character[] = []
     avoidanceRange = 64
     originalDepth: number
 
@@ -496,7 +495,11 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     }
 
     update(time: number, delta: number): void {
-        this.currentCollisions = []
+        this.healthBar.updatePosition()
+        this.manaBar.updatePosition()
+        if (this.scene.state === "idle") {
+            return
+        }
 
         if (this.target) {
             this.withTargetUpdate()
@@ -505,7 +508,5 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         }
 
         this.selfUpdate(delta)
-        this.healthBar.updatePosition()
-        this.manaBar.updatePosition()
     }
 }

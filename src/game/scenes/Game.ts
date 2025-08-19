@@ -13,7 +13,7 @@ export class Game extends Scene {
     gameText: Phaser.GameObjects.Text
     teamA: CharacterGroup
     teamB: CharacterGroup
-    state: GameState = "idle"
+    state: GameState = "fighting"
     walls: Phaser.GameObjects.Group
 
     constructor() {
@@ -57,7 +57,7 @@ export class Game extends Scene {
         this.physics.add.collider(this.walls, this.teamA)
         this.physics.add.collider(this.walls, this.teamB)
 
-        EventBus.emit("current-scene-ready", this)
+        EventBus.emit("game-ready", this)
     }
 
     createBackground() {
@@ -101,7 +101,6 @@ export class Game extends Scene {
             .setDisplaySize(thickness, arenaHeight)
             .setVisible(false)
             .refreshBody()
-
     }
 
     changeScene() {

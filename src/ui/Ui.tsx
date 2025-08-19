@@ -1,30 +1,35 @@
-import React from "react";
-import { Box } from "@mui/material";
-import Phaser from "phaser";
-import { CharactersRow } from "./CharactersRow";
-import { Game } from "../game/scenes/Game";
+import React, { useEffect, useState } from "react"
+import { Box, ThemeProvider } from "@mui/material"
+import Phaser from "phaser"
+import { CharactersRow } from "./CharactersRow"
+import { Game } from "../game/scenes/Game"
+import { EventBus } from "../game/EventBus"
+import { useMuiTheme } from "../hooks/useMuiTheme"
 
-interface UiProps {
-    game?: Phaser.Game | null
-    scene?: Phaser.Scene | Game | null
-}
+interface UiProps {}
 
 export const Ui: React.FC<UiProps> = (props) => {
+    const theme = useMuiTheme()
+    const [game, setGame] = useState<Game | null>(null)
+    useEffect(() => {
+        EventBus.on("game-ready", (game: Game) => setGame(game))
+    }, [])
     return (
-        <Box
-            sx={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                padding: 5,
-                border: "1px solid red",
-                pointerEvents: "none",
-            }}
-        >
-            {props.scene instanceof Game && <CharactersRow charactersGroup={props.scene.teamA} />}
-        </Box>
+        <ThemeProvider theme={theme}>
+            <Box
+                sx={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    padding: 5,
+                    border: "1px solid red",
+                    pointerEvents: "none",
+                }}
+            >
+                {game && <CharactersRow charactersGroup={game.teamA} />}
+            </Box>
+        </ThemeProvider>
     )
 }
-
