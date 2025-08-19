@@ -47,7 +47,7 @@ export class Projectile extends Phaser.Physics.Arcade.Image {
         this.scene.physics.velocityFromRotation(angle, this.speed, this.body.velocity)
 
         // overlap with enemy team only
-        const enemyTeam = this.scene.teamA.contains(from) ? this.scene.teamB : this.scene.teamA
+        const enemyTeam = this.scene.playerTeam.contains(from) ? this.scene.enemyTeam : this.scene.playerTeam
         this.scene.physics.add.overlap(this, enemyTeam, (_arrow, enemyObj) => {
             const enemy = enemyObj as Character
             if (!enemy.active) return

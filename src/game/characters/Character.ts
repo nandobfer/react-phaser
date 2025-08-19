@@ -13,6 +13,17 @@ export class CharacterGroup extends Phaser.GameObjects.Group {
         config?: Phaser.Types.GameObjects.Group.GroupConfig | Phaser.Types.GameObjects.Group.GroupCreateConfig
     ) {
         super(scene, children, config)
+        scene.add.existing(this)
+        this.runChildUpdate = true
+    }
+
+    override getChildren() {
+        return super.getChildren() as Character[]
+    }
+
+    reset() {
+        const characters = this.getChildren() as Character[]
+        characters.forEach((character) => character.reset())
     }
 }
 
@@ -187,8 +198,8 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     newTarget() {
         this.stopMoving()
         this.idle()
-        const enemyTeam = this.scene.teamA.contains(this) ? this.scene.teamB : this.scene.teamA
-        const enemies = enemyTeam.getChildren() as Character[]
+        const enemyTeam = this.scene.playerTeam.contains(this) ? this.scene.enemyTeam : this.scene.playerTeam
+        const enemies = enemyTeam.getChildren()
         let closestEnemy: Character | undefined = undefined
         let closestEnemyDistance = 0
         for (const enemy of enemies) {
@@ -310,7 +321,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         )
 
         // Find closest character in front
-        const allCharacters = [...this.scene.teamA.getChildren(), ...this.scene.teamB.getChildren()].filter(
+        const allCharacters = [...this.scene.playerTeam.getChildren(), ...this.scene.enemyTeam.getChildren()].filter(
             (c) => c !== this && c.active
         ) as Character[]
 

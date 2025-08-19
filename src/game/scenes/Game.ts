@@ -11,10 +11,11 @@ export class Game extends Scene {
     camera: Phaser.Cameras.Scene2D.Camera
     background: Phaser.GameObjects.Image
     gameText: Phaser.GameObjects.Text
-    teamA: CharacterGroup
-    teamB: CharacterGroup
+    playerTeam: CharacterGroup
+    enemyTeam: CharacterGroup
     state: GameState = "fighting"
     walls: Phaser.GameObjects.Group
+    stage = 1
 
     constructor() {
         super("Game")
@@ -38,24 +39,20 @@ export class Game extends Scene {
         //     .setOrigin(0.5)
         //     .setDepth(100)
 
-        this.teamA = this.physics.add.group({ runChildUpdate: true })
         const rogue = new Rogue(this, this.camera.width / 2, this.camera.height / 2)
-        this.teamA.add(rogue)
         const archer = new Archer(this, this.camera.width / 2.2, this.camera.height / 1.8)
-        this.teamA.add(archer)
+        this.playerTeam = new CharacterGroup(this, [rogue, archer])
 
-        this.teamB = this.physics.add.group({ runChildUpdate: true })
         const knight = new Knight(this, this.camera.width / 2.5, this.camera.height / 2.5)
         const knight2 = new Knight(this, this.camera.width / 1.5, this.camera.height / 2.5)
-        this.teamB.add(knight)
-        this.teamB.add(knight2)
+        this.enemyTeam = new CharacterGroup(this, [knight, knight2])
 
-        this.physics.add.overlap(this.teamA, this.teamA)
-        this.physics.add.overlap(this.teamA, this.teamB)
-        this.physics.add.overlap(this.teamB, this.teamB)
+        this.physics.add.overlap(this.playerTeam, this.playerTeam)
+        this.physics.add.overlap(this.playerTeam, this.enemyTeam)
+        this.physics.add.overlap(this.enemyTeam, this.enemyTeam)
 
-        this.physics.add.collider(this.walls, this.teamA)
-        this.physics.add.collider(this.walls, this.teamB)
+        this.physics.add.collider(this.walls, this.playerTeam)
+        this.physics.add.collider(this.walls, this.enemyTeam)
 
         EventBus.emit("game-ready", this)
     }
@@ -112,5 +109,14 @@ export class Game extends Scene {
         EventBus.emit("gamestate", this.state)
     }
 
-    update(time: number, delta: number): void {}
+    finishRound() {}
+
+    update(time: number, delta: number): void {
+        const aliveEnemyCharacters = this.enemyTeam.countActive()
+        if (aliveEnemyCharacters === 0) {
+            this.changeState("idle")
+        }
+
+        const alivePlayerCharacters = this.playerTeam.countActive()
+    }
 }

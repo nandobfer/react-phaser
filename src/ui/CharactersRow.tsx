@@ -8,7 +8,7 @@ interface CharactersRowProps {
 }
 
 export const CharactersRow: React.FC<CharactersRowProps> = (props) => {
-    const characters = useMemo(() => props.charactersGroup.getChildren() as Character[], [props.charactersGroup])
+    const characters = useMemo(() => props.charactersGroup.getChildren(), [props.charactersGroup])
 
     return (
         <Paper sx={{ flexDirection: "column", padding: 1, pointerEvents: "auto", width: 300 }}>
