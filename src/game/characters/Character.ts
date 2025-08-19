@@ -2,6 +2,7 @@ import Phaser, { Scene } from "phaser"
 import { Game } from "../scenes/Game"
 import { ProgressBar } from "../../ui/ProgressBar"
 import { spawnParrySpark } from "../fx/Parry"
+import { EventBus } from "../EventBus"
 
 export type Direction = "left" | "up" | "down" | "right"
 
@@ -22,6 +23,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     isAttacking: boolean = false
     avoidanceRange = 64
     originalDepth: number
+    id: string
 
     health = 0
     maxHealth = 100
@@ -59,6 +61,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.setCollideWorldBounds(true)
         this.body.pushable = false
         this.originalDepth = this.depth
+        this.id = Phaser.Utils.String.UUID()
 
         this.createAnimations()
         this.handleMouseEvents()
@@ -497,6 +500,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     update(time: number, delta: number): void {
         this.healthBar.updatePosition()
         this.manaBar.updatePosition()
+
         if (this.scene.state === "idle") {
             return
         }
@@ -508,5 +512,6 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         }
 
         this.selfUpdate(delta)
+        EventBus.emit(`character-${this.id}-update`, this)
     }
 }

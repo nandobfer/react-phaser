@@ -13,7 +13,7 @@ export const CharactersRow: React.FC<CharactersRowProps> = (props) => {
     return (
         <Paper sx={{ flexDirection: "column", padding: 1, pointerEvents: "auto", width: 300 }}>
             {characters.map((char) => (
-                <CharacterSheet character={char} key={char.name} />
+                <CharacterSheet character={char} key={char.id} />
             ))}
         </Paper>
     )

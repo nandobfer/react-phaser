@@ -1,7 +1,8 @@
-import React, { useMemo } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { Accordion, AccordionDetails, AccordionSummary, Box, Typography } from "@mui/material"
 import { Character } from "../../game/characters/Character"
 import { ArrowDropDown, Expand } from "@mui/icons-material"
+import { EventBus } from "../../game/EventBus"
 
 interface CharacterSheetProps {
     character: Character
@@ -24,6 +25,7 @@ export const SheetData: React.FC<SheetDataItem> = (props) => {
 }
 
 export const CharacterSheet: React.FC<CharacterSheetProps> = (props) => {
+    const [character, setCharacter] = useState(props.character)
     const attributes: SheetDataItem[] = useMemo(
         () => [
             { title: "Health", value: `${props.character.health} / ${props.character.maxHealth}` },
@@ -33,12 +35,16 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = (props) => {
             { title: "Crit Chance", value: `${props.character.critChance} %` },
             { title: "Crit Damage Multiplier", value: `x ${props.character.critDamageMultiplier}` },
         ],
-        [props.character]
+        [character]
     )
+
+    useEffect(() => {
+        EventBus.on(`character-${character.id}-update`, (character: Character) => setCharacter(character))
+    }, [])
     return (
         <Accordion sx={{ flexDirection: "column" }} slots={{ root: Box }}>
             <AccordionSummary expandIcon={<ArrowDropDown />} sx={{ padding: 0 }}>
-                <Typography variant="body1">{props.character.name}</Typography>
+                <Typography variant="body1">{character.name}</Typography>
             </AccordionSummary>
             <AccordionDetails>
                 <Box sx={{ flexDirection: "column" }}>
