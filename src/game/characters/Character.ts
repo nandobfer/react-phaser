@@ -4,10 +4,12 @@ import { Game } from "../scenes/Game"
 import { ProgressBar } from "../../ui/ProgressBar"
 import { spawnParrySpark } from "../fx/Parry"
 import { EventBus } from "../EventBus"
+import { LevelBadge } from "../LevelBadge"
 
 export type Direction = "left" | "up" | "down" | "right"
 
 export interface CharacterDto {
+    level: number
     name: string
     id: string
     isPlayer: boolean
@@ -37,6 +39,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     id: string
     isPlayer: boolean = false
 
+    level = 1
     health = 0
     maxHealth = 100
     attackSpeed = 1
@@ -68,6 +71,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 
     private healthBar: ProgressBar
     private manaBar: ProgressBar
+    private levelBadge!: LevelBadge
 
     constructor(scene: Game, x: number, y: number, name: string, id: string) {
         super(scene, x, y, name)
@@ -93,6 +97,8 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 
         this.healthBar = new ProgressBar(this, { color: 0x2ecc71, offsetY: -30, interpolateColor: true })
         this.manaBar = new ProgressBar(this, { color: 0x3498db, offsetY: -25 })
+        this.levelBadge = new LevelBadge(this.scene, this, { offsetX: 22, offsetY: -15 })
+        this.levelBadge.setLevel(this.level)
     }
 
     reset() {
@@ -106,6 +112,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.updateFacingDirection()
         this.stopMoving()
         this.idle()
+        this.levelBadge.reset()
         this.target = undefined
 
         if (this.isPlayer && this.boardX && this.boardY) {
@@ -515,20 +522,9 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.active = false
         this.setDepth(this.depth - 1)
         this.createBloodPool()
-
-        this.scene.tweens.add({
-            targets: { a: 1 },
-            a: 0,
-            duration: 300,
-            onUpdate: (tw, target: any) => {
-                this.healthBar.setAlpha(target.a)
-                this.manaBar.setAlpha(target.a)
-            },
-            onComplete: () => {
-                this.healthBar.setVisible(false)
-                this.manaBar.setVisible(false)
-            },
-        })
+        this.healthBar.fadeOut()
+        this.manaBar.fadeOut()
+        this.levelBadge.fadeOut()
     }
 
     private createBloodPool() {
@@ -590,9 +586,14 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
-    update(time: number, delta: number): void {
+    updateCharUi() {
         this.healthBar.updatePosition()
         this.manaBar.updatePosition()
+        this.levelBadge.updatePosition()
+    }
+
+    update(time: number, delta: number): void {
+        this.updateCharUi()
 
         if (this.scene.state === "idle") {
             return
@@ -610,6 +611,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 
     getDto() {
         const data: CharacterDto = {
+            level: this.level,
             armor: this.armor,
             attackDamage: this.attackDamage,
             attackRange: this.attackRange,

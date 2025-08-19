@@ -1,5 +1,7 @@
 // src/ui/HealthBar.ts
 import Phaser from "phaser"
+import { Character } from "../game/characters/Character"
+import { Game } from "../game/scenes/Game"
 
 export interface BarOptions {
     color: number
@@ -8,8 +10,8 @@ export interface BarOptions {
 }
 
 export class ProgressBar {
-    private scene: Phaser.Scene
-    private target: Phaser.GameObjects.Sprite
+    private scene: Game
+    private target: Character
     private bg: Phaser.GameObjects.Graphics
     private bar: Phaser.GameObjects.Graphics
     private width: number
@@ -22,7 +24,7 @@ export class ProgressBar {
     private fillColor: number
     private interpolateColor: boolean
 
-    constructor(target: Phaser.GameObjects.Sprite, options: BarOptions) {
+    constructor(target: Character, options: BarOptions) {
         this.target = target
         this.scene = this.target.scene
 
@@ -98,6 +100,20 @@ export class ProgressBar {
     reset(maxValue: number) {
         this.setAlpha(1)
         this.setValue(maxValue, maxValue)
+    }
+
+    fadeOut() {
+        this.scene.tweens.add({
+            targets: { a: 1 },
+            a: 0,
+            duration: 300,
+            onUpdate: (tw, target: any) => {
+                this.setAlpha(target.a)
+            },
+            onComplete: () => {
+                this.setVisible(false)
+            },
+        })
     }
 
     destroy(): void {
