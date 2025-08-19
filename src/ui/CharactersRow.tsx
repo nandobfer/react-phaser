@@ -11,7 +11,7 @@ export const CharactersRow: React.FC<CharactersRowProps> = (props) => {
     const characters = useMemo(() => props.charactersGroup.getChildren(), [props.charactersGroup])
 
     return (
-        <Paper sx={{ flexDirection: "column", padding: 1, pointerEvents: "auto", width: 300 }}>
+        <Paper sx={{ flexDirection: "column", padding: 1, pointerEvents: "auto", width: "20vw" }}>
             {characters.map((char) => (
                 <CharacterSheet character={char} key={char.id} />
             ))}

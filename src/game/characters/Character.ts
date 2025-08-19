@@ -7,18 +7,41 @@ import { EventBus } from "../EventBus"
 export type Direction = "left" | "up" | "down" | "right"
 
 export class CharacterGroup extends Phaser.GameObjects.Group {
+    isPlayer: boolean = false
     constructor(
         scene: Scene,
         children?: Character[] | Phaser.Types.GameObjects.Group.GroupConfig | Phaser.Types.GameObjects.Group.GroupCreateConfig,
-        config?: Phaser.Types.GameObjects.Group.GroupConfig | Phaser.Types.GameObjects.Group.GroupCreateConfig
+        config?: (Phaser.Types.GameObjects.Group.GroupConfig | Phaser.Types.GameObjects.Group.GroupCreateConfig) & { isPlayer?: boolean }
     ) {
         super(scene, children, config)
         scene.add.existing(this)
         this.runChildUpdate = true
+        this.isPlayer = !!config?.isPlayer
+        if (this.isPlayer) {
+            this.setChildrenPlayer()
+        }
     }
 
     override getChildren() {
         return super.getChildren() as Character[]
+    }
+
+    add(child: Character, addToScene?: boolean): this {
+        super.add(child, addToScene)
+        if (this.isPlayer) {
+            child.isPlayer = true
+            child.resetMouseEvents()
+        }
+
+        return this
+    }
+
+    private setChildrenPlayer() {
+        const characters = this.getChildren() as Character[]
+        for (const character of characters) {
+            character.isPlayer = true
+            character.resetMouseEvents()
+        }
     }
 
     reset() {
@@ -35,6 +58,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     avoidanceRange = 64
     originalDepth: number
     id: string
+    isPlayer: boolean = false
 
     health = 0
     maxHealth = 100
@@ -75,7 +99,6 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.id = Phaser.Utils.String.UUID()
 
         this.createAnimations()
-        this.handleMouseEvents()
 
         this.on("animationupdate", this.handleAnimationUpdate, this)
 
@@ -161,27 +184,40 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         spawnParrySpark(this.scene, this.x, this.y, ang)
     }
 
+    resetMouseEvents() {
+        this.clearMouseEvents()
+        this.handleMouseEvents()
+    }
+
+    clearMouseEvents() {
+        this.off("pointerover")
+        this.off("pointerout")
+        this.off("drag")
+    }
+
     handleMouseEvents() {
         this.setInteractive({ useHandCursor: true, draggable: true })
-        this.scene.input.setDraggable(this)
-
         this.scene.input.enableDebug(this)
 
-        this.on("pointerover", () => {
-            if (this.scene.state === "idle") {
-                this.animateGlow(5)
-            }
-        })
+        if (this.isPlayer) {
+            this.scene.input.setDraggable(this)
 
-        this.on("pointerout", () => {
-            this.animateGlow(0)
-        })
+            this.on("pointerover", () => {
+                if (this.scene.state === "idle") {
+                    this.animateGlow(5)
+                }
+            })
 
-        this.on("drag", (_: never, x: number, y: number) => {
-            if (this.scene.state === "idle") {
-                this.setPosition(x, y)
-            }
-        })
+            this.on("pointerout", () => {
+                this.animateGlow(0)
+            })
+
+            this.on("drag", (_: never, x: number, y: number) => {
+                if (this.scene.state === "idle") {
+                    this.setPosition(x, y)
+                }
+            })
+        }
     }
 
     private animateGlow(targetStrength: number) {

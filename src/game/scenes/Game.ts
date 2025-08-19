@@ -41,7 +41,7 @@ export class Game extends Scene {
 
         const rogue = new Rogue(this, this.camera.width / 2, this.camera.height / 2)
         const archer = new Archer(this, this.camera.width / 2.2, this.camera.height / 1.8)
-        this.playerTeam = new CharacterGroup(this, [rogue, archer])
+        this.playerTeam = new CharacterGroup(this, [rogue, archer], { isPlayer: true })
 
         const knight = new Knight(this, this.camera.width / 2.5, this.camera.height / 2.5)
         const knight2 = new Knight(this, this.camera.width / 1.5, this.camera.height / 2.5)
@@ -111,12 +111,16 @@ export class Game extends Scene {
 
     finishRound() {}
 
-    update(time: number, delta: number): void {
+    anyTeamWiped() {
         const aliveEnemyCharacters = this.enemyTeam.countActive()
-        if (aliveEnemyCharacters === 0) {
-            this.changeState("idle")
-        }
-
         const alivePlayerCharacters = this.playerTeam.countActive()
+        return aliveEnemyCharacters === 0 || alivePlayerCharacters === 0
+    }
+
+    update(time: number, delta: number): void {
+        if (this.anyTeamWiped()) {
+            this.changeState("idle")
+            this.finishRound()
+        }
     }
 }
