@@ -40,6 +40,9 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = (props) => {
 
     useEffect(() => {
         EventBus.on(`character-${character.id}-update`, (character: Character) => setCharacter(character))
+        return () => {
+            EventBus.off(`character-${character.id}-update`, (character: Character) => setCharacter(character))
+        }
     }, [])
     return (
         <Accordion sx={{ flexDirection: "column" }} slots={{ root: Box }}>

@@ -1,18 +1,32 @@
 import React, { useEffect, useState } from "react"
 import { Box, ThemeProvider } from "@mui/material"
-import { CharactersRow } from "./CharactersRow"
 import { Game } from "../game/scenes/Game"
 import { EventBus } from "../game/EventBus"
 import { useMuiTheme } from "../hooks/useMuiTheme"
 import { GameStateButtons } from "./GameStateButtons/GameStateButtons"
+import { CharacterRegistry } from "../game/characters/CharacterRegistry"
+import { NewCharacterModal } from "./NewCharacterModal/NewCharacterModal"
+import { useGameScene } from "../hooks/useGameScene"
 
 interface UiProps {}
 
 export const Ui: React.FC<UiProps> = (props) => {
     const theme = useMuiTheme()
-    const [game, setGame] = useState<Game | null>(null)
+    const game = useGameScene()
+    const [chooseCharacterModalOpen, setChooseCharacterModalOpen] = useState(false)
+
+    const handleFirstCharacterEmitted = () => {
+        const availableCharacters = CharacterRegistry.getAllRegistered()
+        console.log(availableCharacters)
+        setChooseCharacterModalOpen(true)
+    }
+
     useEffect(() => {
-        EventBus.on("game-ready", (game: Game) => setGame(game))
+        EventBus.on("choose-character", handleFirstCharacterEmitted)
+
+        return () => {
+            EventBus.off("choose-character", handleFirstCharacterEmitted)
+        }
     }, [])
     return (
         <ThemeProvider theme={theme}>
@@ -36,6 +50,8 @@ export const Ui: React.FC<UiProps> = (props) => {
                     </>
                 )}
             </Box>
+
+            <NewCharacterModal open={chooseCharacterModalOpen} handleClose={() => setChooseCharacterModalOpen(false)} />
         </ThemeProvider>
     )
 }

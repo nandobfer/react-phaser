@@ -1,3 +1,5 @@
+// src/game/characters/CharacterGroup.ts
+
 import { Scene } from "phaser"
 import { Character } from "./Character"
 
@@ -33,25 +35,34 @@ export class CharacterGroup extends Phaser.GameObjects.Group {
     }
 
     private setChildrenPlayer() {
-        const characters = this.getChildren() as Character[]
+        const characters = this.getChildren()
         for (const character of characters) {
             character.isPlayer = true
         }
     }
 
     private resetMouseEvents() {
-        const characters = this.getChildren() as Character[]
+        const characters = this.getChildren()
         for (const character of characters) {
             character.resetMouseEvents()
         }
     }
 
     reset() {
-        const characters = this.getChildren() as Character[]
-        characters.forEach((character) => character.reset())
-
+        const characters = this.getChildren()
         const y = this.isPlayer ? 503 : 166
 
-        Phaser.Actions.GridAlign(characters, { cellHeight: 64, cellWidth: 64, y, x: 561 })
+        Phaser.Actions.GridAlign(characters, { cellHeight: 64, cellWidth: 64, y, x: 625 })
+        characters.forEach((character) => character.reset())
+    }
+
+    clear(removeFromScene?: boolean, destroyChild?: boolean) {
+        const characters = this.getChildren()
+        for (const character of characters) {
+            character.destroyBars()
+        }
+        super.clear(removeFromScene, destroyChild)
+
+        return this
     }
 }

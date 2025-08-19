@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react"
-import { Box, Button } from "@mui/material"
+import { Box, Button, Divider } from "@mui/material"
 import { Game, GameState } from "../../game/scenes/Game"
 import { EventBus } from "../../game/EventBus"
+import { DebugMenu } from "../DebugMenu/DebugMenu"
 
 interface GameStateButtonsProps {
     game: Game
@@ -26,6 +27,10 @@ export const GameStateButtons: React.FC<GameStateButtonsProps> = (props) => {
 
     useEffect(() => {
         EventBus.on("gamestate", (state: GameState) => setGameState(state))
+
+        return () => {
+            EventBus.off("gamestate", (state: GameState) => setGameState(state))
+        }
     }, [])
 
     return (
@@ -36,6 +41,9 @@ export const GameStateButtons: React.FC<GameStateButtonsProps> = (props) => {
             <Button variant="outlined" onClick={gameState === "fighting" ? onStopClick : onPlayClick}>
                 {gameState === "fighting" ? "stop" : "fight"}
             </Button>
+
+            <Divider />
+            <DebugMenu game={props.game} />
         </Box>
     )
 }

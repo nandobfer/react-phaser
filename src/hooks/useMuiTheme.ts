@@ -55,7 +55,7 @@ export const useMuiTheme = () => {
                             defaultProps: {
                                 slotProps: {
                                     paper: {
-                                        sx: { display: "flex", padding: 2, flexDirection: "column", gap: 2 },
+                                        sx: { display: "flex", padding: 2, flexDirection: "column", gap: 2, maxWidth: "90vw" },
                                         elevation: undefined,
                                     },
                                 },
@@ -65,7 +65,7 @@ export const useMuiTheme = () => {
                         MuiCircularProgress: { defaultProps: { size: "1.5rem", color: "inherit" } },
                         MuiTooltip: { defaultProps: { arrow: true } },
                     },
-                },
+                }
                 // ptBR
             ),
         [colors]

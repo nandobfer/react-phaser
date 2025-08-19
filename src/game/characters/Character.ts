@@ -1,3 +1,4 @@
+// src/game/characters/Character.ts
 import Phaser from "phaser"
 import { Game } from "../scenes/Game"
 import { ProgressBar } from "../../ui/ProgressBar"
@@ -5,6 +6,26 @@ import { spawnParrySpark } from "../fx/Parry"
 import { EventBus } from "../EventBus"
 
 export type Direction = "left" | "up" | "down" | "right"
+
+export interface CharacterDto {
+    name: string
+    id: string
+    isPlayer: boolean
+    maxHealth: number
+    attackSpeed: number
+    attackDamage: number
+    attackRange: number
+    maxMana: number
+    manaPerSecond: number
+    manaPerAttack: number
+    armor: number
+    resistance: number
+    speed: number
+    critChance: number
+    critDamageMultiplier: number
+    boardX: number
+    boardY: number
+}
 
 export class Character extends Phaser.Physics.Arcade.Sprite {
     facing: Direction = "down"
@@ -31,6 +52,9 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     critChance = 10
     critDamageMultiplier = 2
 
+    boardX = 0
+    boardY = 0
+
     declare scene: Game
     declare body: Phaser.Physics.Arcade.Body
 
@@ -43,16 +67,18 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     private healthBar: ProgressBar
     private manaBar: ProgressBar
 
-    constructor(scene: Game, x: number, y: number, name: string) {
+    constructor(scene: Game, x: number, y: number, name: string, id: string) {
         super(scene, x, y, name)
 
+        this.id = id
         this.name = name
         this.scene.add.existing(this)
         this.scene.physics.add.existing(this)
         this.setCollideWorldBounds(true)
         this.body.pushable = false
         this.originalDepth = this.depth
-        this.id = Phaser.Utils.String.UUID()
+        this.boardX = x
+        this.boardY = y
 
         this.createAnimations()
 
@@ -79,6 +105,25 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.stopMoving()
         this.idle()
         this.target = undefined
+
+        if (this.isPlayer) {
+            this.x = this.boardX
+            this.y = this.boardY
+        }
+    }
+
+    saveInStorage() {
+        const dto = this.getDto()
+        const characters = this.scene.getSavedCharacters()
+        const index = characters.findIndex((c) => c.id === this.id)
+
+        if (index >= 0) {
+            characters[index] = dto // Update the array element
+        } else {
+            characters.push(dto) // Add new character
+        }
+        this.scene.savePlayerCharacters(characters)
+        console.log(dto)
     }
 
     createAnimations() {
@@ -180,11 +225,41 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
                 this.animateGlow(0)
             })
 
-            this.on("drag", (_: never, x: number, y: number) => {
-                if (this.scene.state === "idle") {
-                    this.setPosition(x, y)
-                }
+            this.on("dragstart", (pointer: Phaser.Input.Pointer) => {
+                if (this.scene.state !== "idle") return
+                this.scene.grid.showHighlightAtWorld(pointer.worldX, pointer.worldY)
             })
+
+            this.on("drag", (pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
+                if (this.scene.state !== "idle") return
+                // Free drag follows the pointer
+                this.setPosition(dragX, dragY)
+                // Update tile highlight under the pointer
+                this.scene.grid.showHighlightAtWorld(pointer.worldX, pointer.worldY)
+            })
+
+            this.on("dragend", (pointer: Phaser.Input.Pointer) => {
+                if (this.scene.state !== "idle") return
+                // Snap to tile center at drop
+                const snapped = this.scene.grid.snapSpriteToWorld(this, pointer.worldX, pointer.worldY)
+                if (snapped) {
+                    this.boardX = this.x
+                    this.boardY = this.y
+                    this.saveInStorage()
+                }
+
+                if (!snapped) {
+                    // optional: clamp back into arena if dropped outside
+                    // or keep last valid snapped cell by tracking it
+                }
+                this.scene.grid.hideHighlight()
+            })
+
+            // this.on("drag", (_: never, x: number, y: number) => {
+            //     if (this.scene.state === "idle") {
+            //         this.setPosition(x, y)
+            //     }
+            // })
         }
     }
 
@@ -478,6 +553,11 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         this.gainMana(manaGained)
     }
 
+    destroyBars() {
+        this.healthBar.destroy()
+        this.manaBar.destroy()
+    }
+
     selfUpdate(delta: number) {
         if (this.health <= 0) {
             this.die()
@@ -518,5 +598,28 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 
         this.selfUpdate(delta)
         EventBus.emit(`character-${this.id}-update`, this)
+    }
+
+    getDto() {
+        const data: CharacterDto = {
+            armor: this.armor,
+            attackDamage: this.attackDamage,
+            attackRange: this.attackRange,
+            attackSpeed: this.attackSpeed,
+            boardX: this.x,
+            boardY: this.y,
+            critChance: this.critChance,
+            critDamageMultiplier: this.critDamageMultiplier,
+            id: this.id,
+            isPlayer: this.isPlayer,
+            manaPerAttack: this.manaPerAttack,
+            manaPerSecond: this.manaPerSecond,
+            maxHealth: this.maxHealth,
+            maxMana: this.maxMana,
+            name: this.name,
+            resistance: this.resistance,
+            speed: this.speed,
+        }
+        return data
     }
 }

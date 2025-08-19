@@ -8,8 +8,8 @@ export class Archer extends RangedCharacter<Arrow> {
     attackDamage = 30
     attackRange = 4
 
-    constructor(scene: Game, x: number, y: number) {
-        super(scene, x, y, "archer", Arrow)
+    constructor(scene: Game, x: number, y: number, id: string) {
+        super(scene, x, y, "archer", Arrow, id)
     }
 
     extractAttackingAnimation() {

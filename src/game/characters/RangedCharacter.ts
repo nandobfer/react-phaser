@@ -6,8 +6,8 @@ export class RangedCharacter<T extends Projectile> extends Character {
     attackRange = 3
     projectile: new (character: RangedCharacter<T>) => T
 
-    constructor(scene: Game, x: number, y: number, texture: string, projectile: new (character: RangedCharacter<T>) => T) {
-        super(scene, x, y, texture)
+    constructor(scene: Game, x: number, y: number, texture: string, projectile: new (character: RangedCharacter<T>) => T, id: string) {
+        super(scene, x, y, texture, id)
         this.projectile = projectile
     }
 
