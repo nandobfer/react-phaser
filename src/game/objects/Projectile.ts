@@ -5,7 +5,6 @@ import { Character } from "../characters/Character"
 
 export class Projectile extends Phaser.Physics.Arcade.Image {
     owner: Character
-    maxDistance = 0
     startX = 0
     startY = 0
     onHitEffect: string
@@ -34,7 +33,7 @@ export class Projectile extends Phaser.Physics.Arcade.Image {
         if (!this.owner.target) return
         const from = this.owner
 
-        this.maxDistance = from.attackRange * 64 // keep consistent with range logic
+        // this.maxDistance = from.attackRange * 64 // keep consistent with range logic
         this.startX = from.x
         this.startY = from.y
 
@@ -45,6 +44,10 @@ export class Projectile extends Phaser.Physics.Arcade.Image {
         this.setRotation(angle)
 
         this.scene.physics.velocityFromRotation(angle, this.speed, this.body.velocity)
+
+        this.scene.physics.add.collider(this, this.scene.walls, () => {
+            this.setVelocity(0)
+        })
 
         // overlap with enemy team only
         const enemyTeam = this.scene.playerTeam.contains(from) ? this.scene.enemyTeam : this.scene.playerTeam
@@ -62,8 +65,7 @@ export class Projectile extends Phaser.Physics.Arcade.Image {
             delay: 16,
             loop: true,
             callback: () => {
-                const dist = Phaser.Math.Distance.Between(this.startX, this.startY, this.x, this.y)
-                if (dist >= this.maxDistance || !this.active) {
+                if (!this.active) {
                     this.destroy()
                 }
             },

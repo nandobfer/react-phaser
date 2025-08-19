@@ -581,11 +581,12 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 
         if (this.isInAttackRange()) {
             this.stopMoving()
-            // this.idle()
-            this.handleAttack() // You'll implement this
+            this.handleAttack()
         } else {
-            this.moveToTarget()
-            this.avoidOtherCharacters()
+            if (!this.isAttacking) {
+                this.moveToTarget()
+                this.avoidOtherCharacters()
+            }
         }
     }
 

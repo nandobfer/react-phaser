@@ -6,7 +6,7 @@ export class Arrow extends Projectile {
 
     constructor(owner: Character) {
         super(owner, "arrow", "bleeding") // <-- ensure 'arrow' texture is preloaded
-        this.toggleFlipX()
-        this.setScale(0.1, 0.1)
+        // this.toggleFlipX()
+        this.setScale(0.05, 0.05)
     }
 }
