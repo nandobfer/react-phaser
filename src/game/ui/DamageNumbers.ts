@@ -2,9 +2,11 @@
 import Phaser from "phaser"
 import { Game } from "../scenes/Game"
 
+export type DamageType = "normal" | "crit" | "block" | "heal" | "fire" | "cold" | "poison" | "true"
+
 export type DamageTextOpts = {
     crit?: boolean
-    kind?: "normal" | "crit" | "block" | "heal" | "fire" | "cold" | "poison" | "true"
+    type?: DamageType
     // overrides
     duration?: number
     float?: number
@@ -79,7 +81,7 @@ function setTintOrColor(layer: Layer, tintHex: number, cssHex: string) {
 /** Diablo-like floating damage numbers */
 export function showDamageText(scene: Game, x: number, y: number, value: number | string, opts: DamageTextOpts = {}) {
     const num = value
-    const kind: NonNullable<DamageTextOpts["kind"]> = opts.kind ?? (opts.crit ? "crit" : typeof num === "number" && num <= 0 ? "block" : "normal")
+    const kind: NonNullable<DamageTextOpts["type"]> = opts.type ?? (opts.crit ? "crit" : typeof num === "number" && num <= 0 ? "block" : "normal")
 
     const duration = opts.duration ?? (kind === "crit" ? 2000 : 1500)
     const float = opts.float ?? (kind === "crit" ? 64 : 32)

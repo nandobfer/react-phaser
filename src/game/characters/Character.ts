@@ -495,7 +495,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
         const resistanceMultiplier = 1 - this.resistance / 100
         const finalDamage = Math.max(0, incomingDamage * resistanceMultiplier)
 
-        showDamageText(this.scene, this.x, this.y, Math.round(finalDamage), finalDamage <= 0 ? { kind: "block" } : { crit: !!opts?.crit })
+        showDamageText(this.scene, this.x, this.y, Math.round(finalDamage), finalDamage <= 0 ? { type: "block" } : { crit: !!opts?.crit })
 
         this.health -= finalDamage
         this.healthBar.setValue(this.health, this.maxHealth)
