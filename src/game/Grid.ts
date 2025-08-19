@@ -28,7 +28,7 @@ export class Grid {
         this.scene = scene
         this.arena = arena
 
-        this.insets = { left: 66, right: 72, top: 68, bottom: 50 }
+        this.insets = { left: 130, right: 132, top: 160, bottom: 122 }
         this.depthOverArena = 1
 
         // set geometry
